@@ -36,14 +36,27 @@ export default function Dictionary() {
     },
   });
 
-  // Fetch dictionary terms with pagination
+  // Fetch dictionary terms with pagination and search
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const pageSize = 50; // Reasonable page size
   
   const { data: dictionaryResponse, isLoading, error } = useQuery({
-    queryKey: ['dictionary', currentPage],
-    queryFn: () => api.dictionary.getAll({ page: currentPage, limit: pageSize }),
+    queryKey: ['dictionary', currentPage, searchTerm],
+    queryFn: () => {
+      const params: any = { page: currentPage, limit: pageSize };
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim();
+      }
+      return api.dictionary.getAll(params);
+    },
   });
+
+  // Reset to page 1 when searching
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   // Handle different API response formats
   let terms: any[] = [];
@@ -195,40 +208,60 @@ export default function Dictionary() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Summary and Search */}
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-600">
-                  Showing {terms.length.toLocaleString()} dictionary terms
+              {/* Search Bar */}
+              <div className="mb-4">
+                <div className="relative max-w-md">
+                  <Input
+                    placeholder="Search terms (English, Kurdish, Arabic)..."
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-4"
+                  />
+                  {searchTerm && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                      onClick={() => handleSearch("")}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-                <div className="text-xs text-gray-500">
-                  {terms.length > 100 ? 'Large dataset - consider using browser search (Ctrl+F) to find specific terms' : ''}
-                </div>
+                {searchTerm && (
+                  <div className="text-sm text-gray-600 mt-2">
+                    {isLoading ? 'Searching...' : `Found ${dictionaryResponse?.total_items || 0} results for "${searchTerm}"`}
+                  </div>
+                )}
               </div>
               
               {/* Pagination controls */}
-              <div className="flex justify-between items-center mb-4">
-                <div className="text-sm text-gray-600">
-                  Page {currentPage} of {dictionaryResponse?.total_pages || 1}
+              {(dictionaryResponse?.total_pages || 0) > 1 && (
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-sm text-gray-600">
+                    Page {currentPage} of {dictionaryResponse?.total_pages || 1} 
+                    {searchTerm ? ` (filtered results)` : ` (${dictionaryResponse?.total_items || 0} total terms)`}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage <= 1}
+                    >
+                      Previous
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={!dictionaryResponse?.total_pages || currentPage >= dictionaryResponse.total_pages}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage <= 1}
-                  >
-                    Previous
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={!dictionaryResponse?.total_pages || currentPage >= dictionaryResponse.total_pages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
+              )}
               
               <Table>
                 <TableHeader>
