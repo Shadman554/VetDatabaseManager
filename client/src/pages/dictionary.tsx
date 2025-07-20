@@ -36,65 +36,52 @@ export default function Dictionary() {
     },
   });
 
-  // Fetch dictionary terms with pagination and search
+  // Fetch ALL dictionary terms and implement client-side pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const pageSize = 50; // Reasonable page size
+  const pageSize = 50; // Client-side page size
   
-  const { data: dictionaryResponse, isLoading, error } = useQuery({
-    queryKey: ['dictionary', currentPage, searchTerm],
+  // Get all dictionary terms (since API pagination is broken)
+  const { data: allTermsResponse, isLoading, error } = useQuery({
+    queryKey: ['dictionary-all', searchTerm],
     queryFn: async () => {
-      const params: any = { 
-        page: currentPage, 
-        limit: pageSize,
-        offset: (currentPage - 1) * pageSize
-      };
       if (searchTerm.trim()) {
-        params.search = searchTerm.trim();
-      }
-      
-      // Try with offset first, fallback to page if that doesn't work
-      try {
-        const response = await api.dictionary.getAll(params);
-        return response;
-      } catch (error) {
-        console.warn('Dictionary API error with offset, trying without:', error);
-        const simpleParams: any = { page: currentPage, limit: pageSize };
-        if (searchTerm.trim()) {
-          simpleParams.search = searchTerm.trim();
-        }
-        return api.dictionary.getAll(simpleParams);
+        // Use search when filtering
+        return api.dictionary.getAll({ search: searchTerm.trim(), limit: 1000 });
+      } else {
+        // Try to get all terms at once since pagination is broken
+        return api.dictionary.getAll({ limit: 5000 }); // Large limit to get all
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes cache for all terms
   });
+
+  // Client-side pagination
+  const allTerms = allTermsResponse?.items || [];
+  const totalItems = allTerms.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const terms = allTerms.slice(startIndex, endIndex);
+  
+  // Create response format to match existing code
+  const dictionaryResponse = {
+    items: terms,
+    total: totalItems,
+    total_items: totalItems,
+    total_pages: totalPages,
+    pages: totalPages,
+    page: currentPage,
+    size: pageSize
+  };
 
   // Reset to page 1 when searching
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
   };
-
-  // Handle different API response formats
-  let terms: any[] = [];
-  let totalPages = 1;
-  let totalItems = 0;
   
-  if (dictionaryResponse) {
-    if (Array.isArray(dictionaryResponse)) {
-      terms = dictionaryResponse;
-      totalItems = dictionaryResponse.length;
-    } else if (dictionaryResponse.items && Array.isArray(dictionaryResponse.items)) {
-      terms = dictionaryResponse.items;
-      totalPages = dictionaryResponse.pages || Math.ceil((dictionaryResponse.total || 0) / pageSize);
-      totalItems = dictionaryResponse.total || dictionaryResponse.items.length;
-    } else {
-      console.warn('Unexpected dictionary response format:', dictionaryResponse);
-      terms = [];
-    }
-  }
-  
-  console.log('Dictionary terms count:', terms.length, 'Total items in response:', dictionaryResponse?.items?.length);
+  console.log('Dictionary terms count:', terms.length, 'Total items:', totalItems, 'Current page:', currentPage);
 
   const createWordMutation = useMutation({
     mutationFn: api.dictionary.create,
