@@ -377,6 +377,21 @@ export const api = {
       const response = await makeRequest(`/api/urine-slides/${queryString}`);
       return response.json();
     },
+
+    update: async (name: string, data: any) => {
+      const response = await makeRequest(`/api/urine-slides/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (name: string) => {
+      const response = await makeRequest(`/api/urine-slides/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
   },
 
   notifications: {

@@ -86,7 +86,7 @@ export default function UrineSlides() {
   });
 
   const deleteSlideMutation = useMutation({
-    mutationFn: api.urineSlides.delete,
+    mutationFn: (name: string) => api.urineSlides.delete(name),
     onSuccess: () => {
       toast({
         title: "Success",
