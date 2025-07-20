@@ -1,0 +1,1958 @@
+Veterinary Educational Platform API
+ 2.0.0 
+OAS 3.1
+/openapi.json
+A comprehensive API for veterinary education with multilingual content management.
+
+## Features
+- **Authentication**: JWT-based user authentication with role-based access
+- **Content Management**: CRUD operations for educational content
+- **Search by Name**: All entities can be accessed by name/title in addition to ID
+- **Multilingual Support**: Content in English, Kurdish, and Arabic
+- **File Management**: Upload and serve educational resources
+- **User Interaction**: Questions, notifications, and points system
+
+## Available Endpoints
+- **Books**: Access by ID or title (`/api/books/by-title/{title}`)
+- **Diseases**: Access by ID or name (`/api/diseases/by-name/{name}`)
+- **Drugs**: Access by ID or name (`/api/drugs/by-name/{name}`)
+- **Dictionary**: Access by ID or word (`/api/dictionary/by-name/{word}`)
+- **Staff**: Access by ID or name (`/api/staff/by-name/{name}`)
+- **Tutorial Videos**: Access by ID or title (`/api/tutorial-videos/by-title/{title}`)
+- **Normal Ranges**: Access by ID or name (`/api/normal-ranges/by-name/{name}`)
+- **Questions**: Access by ID or user (`/api/questions/by-user/{user_name}`)
+- **Users**: User management and authentication
+- **Notifications**: System notifications
+- **App Links**: Mobile app download links
+- **About**: About page content
+
+## Authentication
+Most endpoints require authentication. Use `/api/auth/login` to get a JWT token,
+then include it in the Authorization header as `Bearer <token>`.
+
+Authorize
+Authentication
+
+
+POST
+/api/auth/register
+Register
+
+Register a new user
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "username": "string",
+  "email": "user@example.com",
+  "password": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "username": "string",
+  "email": "user@example.com",
+  "id": "string",
+  "is_active": true,
+  "is_admin": true,
+  "total_points": 0,
+  "today_points": 0,
+  "created_at": "2025-07-20T18:18:37.540Z",
+  "last_updated": "2025-07-20T18:18:37.540Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/auth/login
+Login
+
+Authenticate user and return access token
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "username": "string",
+  "password": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "access_token": "string",
+  "token_type": "string"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/auth/me
+Get Current User Info
+
+
+Get current user information
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "username": "string",
+  "email": "user@example.com",
+  "id": "string",
+  "is_active": true,
+  "is_admin": true,
+  "total_points": 0,
+  "today_points": 0,
+  "created_at": "2025-07-20T18:18:37.546Z",
+  "last_updated": "2025-07-20T18:18:37.546Z"
+}
+No links
+
+POST
+/api/auth/refresh
+Refresh Token
+
+
+Refresh access token
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "access_token": "string",
+  "token_type": "string"
+}
+No links
+
+POST
+/api/auth/logout
+Logout
+
+
+Logout user (token invalidation would be handled client-side)
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+Books
+
+
+GET
+/api/books/
+Get Books
+
+Get books with optional filtering and pagination
+
+Parameters
+Try it out
+Name	Description
+skip
+integer
+(query)
+Default value : 0
+
+0
+minimum: 0
+limit
+integer
+(query)
+Default value : 100
+
+100
+maximum: 100
+minimum: 1
+category
+string | (string | null)
+(query)
+category
+search
+string | (string | null)
+(query)
+search
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "items": [
+    {
+      "additionalProp1": {}
+    }
+  ],
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "pages": 0
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/books/
+Create Book
+
+
+Create a new book (admin only)
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "cover_url": "string",
+  "download_url": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "cover_url": "string",
+  "download_url": "string",
+  "id": "string",
+  "added_at": "2025-07-20T18:18:37.557Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/books/by-title/{book_title}
+Get Book By Title
+
+Get a specific book by title
+
+Parameters
+Try it out
+Name	Description
+book_title *
+string
+(path)
+book_title
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "cover_url": "string",
+  "download_url": "string",
+  "id": "string",
+  "added_at": "2025-07-20T18:18:37.560Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/books/{book_title}
+Get Book
+
+Get a specific book by title
+
+Parameters
+Try it out
+Name	Description
+book_title *
+string
+(path)
+book_title
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "cover_url": "string",
+  "download_url": "string",
+  "id": "string",
+  "added_at": "2025-07-20T18:18:37.562Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+PUT
+/api/books/{book_title}
+Update Book
+
+
+Update a book (admin only)
+
+Parameters
+Try it out
+Name	Description
+book_title *
+string
+(path)
+book_title
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "cover_url": "string",
+  "download_url": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "cover_url": "string",
+  "download_url": "string",
+  "id": "string",
+  "added_at": "2025-07-20T18:18:37.566Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+DELETE
+/api/books/{book_title}
+Delete Book
+
+
+Delete a book (admin only)
+
+Parameters
+Try it out
+Name	Description
+book_title *
+string
+(path)
+book_title
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/books/{book_title}/upload-cover
+Upload Book Cover
+
+
+Upload book cover image (admin only)
+
+Parameters
+Try it out
+Name	Description
+book_title *
+string
+(path)
+book_title
+Request body
+
+multipart/form-data
+file *
+string($binary)
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/books/categories/list
+Get Categories
+
+Get all unique book categories
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+Diseases
+
+
+GET
+/api/diseases/
+Get Diseases
+
+Get diseases with optional search and pagination
+
+Parameters
+Try it out
+Name	Description
+skip
+integer
+(query)
+Default value : 0
+
+0
+minimum: 0
+limit
+integer
+(query)
+Default value : 100
+
+100
+maximum: 100
+minimum: 1
+search
+string | (string | null)
+(query)
+search
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "items": [
+    {
+      "additionalProp1": {}
+    }
+  ],
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "pages": 0
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/diseases/
+Create Disease
+
+
+Create a new disease (admin only)
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "symptoms": "string",
+  "cause": "string",
+  "control": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "symptoms": "string",
+  "cause": "string",
+  "control": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.579Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/diseases/by-name/{disease_name}
+Get Disease By Name
+
+Get a specific disease by name
+
+Parameters
+Try it out
+Name	Description
+disease_name *
+string
+(path)
+disease_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "symptoms": "string",
+  "cause": "string",
+  "control": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.585Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/diseases/{disease_name}
+Get Disease
+
+Get a specific disease by name
+
+Parameters
+Try it out
+Name	Description
+disease_name *
+string
+(path)
+disease_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "symptoms": "string",
+  "cause": "string",
+  "control": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.588Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+PUT
+/api/diseases/{disease_name}
+Update Disease
+
+
+Update a disease (admin only)
+
+Parameters
+Try it out
+Name	Description
+disease_name *
+string
+(path)
+disease_name
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "symptoms": "string",
+  "cause": "string",
+  "control": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "symptoms": "string",
+  "cause": "string",
+  "control": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.591Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+DELETE
+/api/diseases/{disease_name}
+Delete Disease
+
+
+Delete a disease (admin only)
+
+Parameters
+Try it out
+Name	Description
+disease_name *
+string
+(path)
+disease_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+Drugs
+
+
+GET
+/api/drugs/
+Get Drugs
+
+Get drugs with optional filtering and pagination
+
+Parameters
+Try it out
+Name	Description
+skip
+integer
+(query)
+Default value : 0
+
+0
+minimum: 0
+limit
+integer
+(query)
+Default value : 100
+
+100
+maximum: 100
+minimum: 1
+search
+string | (string | null)
+(query)
+search
+drug_class
+string | (string | null)
+(query)
+drug_class
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "items": [
+    {
+      "additionalProp1": {}
+    }
+  ],
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "pages": 0
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/drugs/
+Create Drug
+
+
+Create a new drug (admin only)
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "name": "string",
+  "usage": "string",
+  "side_effect": "string",
+  "other_info": "string",
+  "drug_class": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "usage": "string",
+  "side_effect": "string",
+  "other_info": "string",
+  "drug_class": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.601Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/drugs/by-name/{drug_name}
+Get Drug By Name
+
+Get a specific drug by name
+
+Parameters
+Try it out
+Name	Description
+drug_name *
+string
+(path)
+drug_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "usage": "string",
+  "side_effect": "string",
+  "other_info": "string",
+  "drug_class": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.604Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/drugs/{drug_name}
+Get Drug
+
+Get a specific drug by name
+
+Parameters
+Try it out
+Name	Description
+drug_name *
+string
+(path)
+drug_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "usage": "string",
+  "side_effect": "string",
+  "other_info": "string",
+  "drug_class": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.607Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+PUT
+/api/drugs/{drug_name}
+Update Drug
+
+
+Update a drug (admin only)
+
+Parameters
+Try it out
+Name	Description
+drug_name *
+string
+(path)
+drug_name
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "name": "string",
+  "usage": "string",
+  "side_effect": "string",
+  "other_info": "string",
+  "drug_class": "string"
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "usage": "string",
+  "side_effect": "string",
+  "other_info": "string",
+  "drug_class": "string",
+  "id": "string",
+  "created_at": "2025-07-20T18:18:37.610Z"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+DELETE
+/api/drugs/{drug_name}
+Delete Drug
+
+
+Delete a drug (admin only)
+
+Parameters
+Try it out
+Name	Description
+drug_name *
+string
+(path)
+drug_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/drugs/classes/list
+Get Drug Classes
+
+Get all unique drug classes
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+Dictionary
+
+
+GET
+/api/dictionary/by-name/{word_name}
+Get Word By Name
+
+Get a specific dictionary word by name
+
+Parameters
+Try it out
+Name	Description
+word_name *
+string
+(path)
+word_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "arabic": "string",
+  "description": "string",
+  "barcode": "string",
+  "is_saved": false,
+  "is_favorite": false,
+  "id": "string"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/dictionary/
+Get Dictionary Words
+
+Get dictionary words with optional filtering and pagination
+
+Parameters
+Try it out
+Name	Description
+skip
+integer
+(query)
+Default value : 0
+
+0
+minimum: 0
+limit
+integer
+(query)
+Default value : 100
+
+100
+maximum: 100
+minimum: 1
+search
+string | (string | null)
+(query)
+search
+favorites_only
+boolean
+(query)
+Default value : false
+
+
+false
+saved_only
+boolean
+(query)
+Default value : false
+
+
+false
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "items": [
+    {
+      "additionalProp1": {}
+    }
+  ],
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "pages": 0
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/dictionary/
+Create Dictionary Word
+
+
+Create a new dictionary word (admin only)
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "arabic": "string",
+  "description": "string",
+  "barcode": "string",
+  "is_saved": false,
+  "is_favorite": false
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "arabic": "string",
+  "description": "string",
+  "barcode": "string",
+  "is_saved": false,
+  "is_favorite": false,
+  "id": "string"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+GET
+/api/dictionary/{word_name}
+Get Dictionary Word
+
+Get a specific dictionary word by name
+
+Parameters
+Try it out
+Name	Description
+word_name *
+string
+(path)
+word_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "arabic": "string",
+  "description": "string",
+  "barcode": "string",
+  "is_saved": false,
+  "is_favorite": false,
+  "id": "string"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+PUT
+/api/dictionary/{word_name}
+Update Dictionary Word
+
+
+Update a dictionary word (admin only)
+
+Parameters
+Try it out
+Name	Description
+word_name *
+string
+(path)
+word_name
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "arabic": "string",
+  "description": "string",
+  "barcode": "string",
+  "is_saved": false,
+  "is_favorite": false
+}
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "name": "string",
+  "kurdish": "string",
+  "arabic": "string",
+  "description": "string",
+  "barcode": "string",
+  "is_saved": false,
+  "is_favorite": false,
+  "id": "string"
+}
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+DELETE
+/api/dictionary/{word_name}
+Delete Dictionary Word
+
+
+Delete a dictionary word (admin only)
+
+Parameters
+Try it out
+Name	Description
+word_name *
+string
+(path)
+word_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/dictionary/{word_name}/favorite
+Toggle Favorite
+
+Toggle favorite status of a dictionary word
+
+Parameters
+Try it out
+Name	Description
+word_name *
+string
+(path)
+word_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+
+POST
+/api/dictionary/{word_name}/save
+Toggle Save
+
+Toggle save status of a dictionary word
+
+Parameters
+Try it out
+Name	Description
+word_name *
+string
+(path)
+word_name
+Responses
+Code	Description	Links
+200	
+Successful Response
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+422	
+Validation Error
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+No links
+Users
