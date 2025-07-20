@@ -67,6 +67,8 @@ export default function Dictionary() {
       terms = [];
     }
   }
+  
+  console.log('Dictionary terms count:', terms.length, 'Total items in response:', dictionaryResponse?.items?.length);
 
   const createWordMutation = useMutation({
     mutationFn: api.dictionary.create,
@@ -175,7 +177,7 @@ export default function Dictionary() {
       {/* Dictionary Terms Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Dictionary Terms ({terms.length})</CardTitle>
+          <CardTitle>All Dictionary Terms ({terms.length.toLocaleString()})</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -202,71 +204,94 @@ export default function Dictionary() {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>English</TableHead>
-                  <TableHead>Kurdish</TableHead>
-                  <TableHead>Arabic</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {terms.map((term: any, index: number) => (
-                  <TableRow key={term.name || index}>
-                    <TableCell className="font-medium">{term.name}</TableCell>
-                    <TableCell>{term.kurdish || '-'}</TableCell>
-                    <TableCell>{term.arabic || '-'}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {term.description ? term.description.substring(0, 60) + '...' : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(term)}
-                          className="flex items-center gap-1"
-                        >
-                          <Edit className="h-3 w-3" />
-                          Edit
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-1 text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Term</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{term.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(term.name)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
+            <div className="space-y-4">
+              {/* Summary and Search */}
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  Showing {terms.length.toLocaleString()} dictionary terms
+                </div>
+                <div className="text-xs text-gray-500">
+                  {terms.length > 100 ? 'Large dataset - consider using browser search (Ctrl+F) to find specific terms' : ''}
+                </div>
+              </div>
+              
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>English</TableHead>
+                    <TableHead>Kurdish</TableHead>
+                    <TableHead>Arabic</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {terms.slice(0, 50).map((term: any, index: number) => (
+                    <TableRow key={term.name || term.id || index}>
+                      <TableCell className="font-medium">{term.name}</TableCell>
+                      <TableCell>{term.kurdish || '-'}</TableCell>
+                      <TableCell>{term.arabic || '-'}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {term.description ? term.description.substring(0, 60) + '...' : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(term)}
+                            className="flex items-center gap-1"
+                          >
+                            <Edit className="h-3 w-3" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1 text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Term</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{term.name}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(term.name)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {terms.length > 50 && (
+                <div className="text-center py-4 border-t">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Showing first 50 of {terms.length.toLocaleString()} terms for performance
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Use your browser's search (Ctrl+F) to find specific terms, or add filters to narrow down results
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
