@@ -125,70 +125,32 @@ export default function Instruments() {
     },
   });
 
-  const updateInstrumentMutation = useMutation({
-    mutationFn: ({ name, data }: { name: string; data: any }) => api.instruments.update(name, data),
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Instrument has been updated successfully",
-      });
-      form.reset();
-      setEditingInstrument(null);
-      setShowForm(false);
-      queryClient.invalidateQueries({ queryKey: ['instruments'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to update instrument: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteInstrumentMutation = useMutation({
-    mutationFn: api.instruments.delete,
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Instrument has been deleted successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ['instruments'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to delete instrument: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+  // Note: Update and delete are not available for instruments API
 
   const onSubmit = (data: any) => {
-    if (editingInstrument) {
-      updateInstrumentMutation.mutate({ name: editingInstrument.name, data });
-    } else {
-      createInstrumentMutation.mutate(data);
-    }
+    // Only create is available for instruments
+    createInstrumentMutation.mutate(data);
   };
 
   const handleEdit = (instrument: any) => {
-    setEditingInstrument(instrument);
-    form.reset({
-      name: instrument.name || "",
-      description: instrument.description || "",
-      usage: instrument.usage || "",
-      category: instrument.category || "",
+    // Edit functionality not available for instruments
+    toast({
+      title: "Feature not available",
+      description: "Editing instruments is not supported by the API",
+      variant: "destructive",
     });
-    setShowForm(true);
   };
 
   const handleDelete = (name: string) => {
-    deleteInstrumentMutation.mutate(name);
+    // Delete functionality not available for instruments
+    toast({
+      title: "Feature not available", 
+      description: "Deleting instruments is not supported by the API",
+      variant: "destructive",
+    });
   };
 
   const handleCancelEdit = () => {
-    setEditingInstrument(null);
     setShowForm(false);
     form.reset();
   };
@@ -288,45 +250,8 @@ export default function Instruments() {
                       {instrument.description ? instrument.description.substring(0, 60) + '...' : '-'}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(instrument)}
-                          className="flex items-center gap-1"
-                        >
-                          <Edit className="h-3 w-3" />
-                          Edit
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-1 text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Instrument</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{instrument.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(instrument.name)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      <div className="text-sm text-muted-foreground">
+                        View only
                       </div>
                     </TableCell>
                   </TableRow>
@@ -343,8 +268,8 @@ export default function Instruments() {
         <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>{editingInstrument ? 'Edit Instrument' : 'Add New Instrument'}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+            <CardTitle>Add New Instrument</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -428,15 +353,15 @@ export default function Instruments() {
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={createInstrumentMutation.isPending || updateInstrumentMutation.isPending}
+                    disabled={createInstrumentMutation.isPending}
                   >
-                    {createInstrumentMutation.isPending || updateInstrumentMutation.isPending ? (
+                    {createInstrumentMutation.isPending ? (
                       <>
                         <LoadingSpinner size="sm" className="mr-2" />
-                        {editingInstrument ? 'Updating...' : 'Adding...'}
+                        Adding...
                       </>
                     ) : (
-                      editingInstrument ? 'Update Instrument' : 'Add Instrument'
+                      'Add Instrument'
                     )}
                   </Button>
                 </div>
