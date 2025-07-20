@@ -43,13 +43,30 @@ export default function Dictionary() {
   
   const { data: dictionaryResponse, isLoading, error } = useQuery({
     queryKey: ['dictionary', currentPage, searchTerm],
-    queryFn: () => {
-      const params: any = { page: currentPage, limit: pageSize };
+    queryFn: async () => {
+      const params: any = { 
+        page: currentPage, 
+        limit: pageSize,
+        offset: (currentPage - 1) * pageSize
+      };
       if (searchTerm.trim()) {
         params.search = searchTerm.trim();
       }
-      return api.dictionary.getAll(params);
+      
+      // Try with offset first, fallback to page if that doesn't work
+      try {
+        const response = await api.dictionary.getAll(params);
+        return response;
+      } catch (error) {
+        console.warn('Dictionary API error with offset, trying without:', error);
+        const simpleParams: any = { page: currentPage, limit: pageSize };
+        if (searchTerm.trim()) {
+          simpleParams.search = searchTerm.trim();
+        }
+        return api.dictionary.getAll(simpleParams);
+      }
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Reset to page 1 when searching
@@ -60,11 +77,17 @@ export default function Dictionary() {
 
   // Handle different API response formats
   let terms: any[] = [];
+  let totalPages = 1;
+  let totalItems = 0;
+  
   if (dictionaryResponse) {
     if (Array.isArray(dictionaryResponse)) {
       terms = dictionaryResponse;
+      totalItems = dictionaryResponse.length;
     } else if (dictionaryResponse.items && Array.isArray(dictionaryResponse.items)) {
       terms = dictionaryResponse.items;
+      totalPages = dictionaryResponse.pages || Math.ceil((dictionaryResponse.total || 0) / pageSize);
+      totalItems = dictionaryResponse.total || dictionaryResponse.items.length;
     } else {
       console.warn('Unexpected dictionary response format:', dictionaryResponse);
       terms = [];
@@ -180,7 +203,7 @@ export default function Dictionary() {
       {/* Dictionary Terms Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Dictionary Terms ({dictionaryResponse?.total_items || terms.length} total)</CardTitle>
+          <CardTitle>Dictionary Terms ({totalItems.toLocaleString()} total)</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -230,24 +253,27 @@ export default function Dictionary() {
                 </div>
                 {searchTerm && (
                   <div className="text-sm text-gray-600 mt-2">
-                    {isLoading ? 'Searching...' : `Found ${dictionaryResponse?.total_items || 0} results for "${searchTerm}"`}
+                    {isLoading ? 'Searching...' : `Found ${totalItems} results for "${searchTerm}"`}
                   </div>
                 )}
               </div>
               
               {/* Pagination controls */}
-              {(dictionaryResponse?.total_pages || 0) > 1 && (
+              {totalPages > 1 && (
                 <div className="flex justify-between items-center mb-4">
                   <div className="text-sm text-gray-600">
-                    Page {currentPage} of {dictionaryResponse?.total_pages || 1} 
-                    {searchTerm ? ` (filtered results)` : ` (${dictionaryResponse?.total_items || 0} total terms)`}
+                    Page {currentPage} of {totalPages.toLocaleString()} 
+                    {searchTerm ? ` (filtered results)` : ` (${totalItems.toLocaleString()} total terms)`}
                   </div>
                   <div className="flex gap-2">
+                    <span className="text-xs text-gray-500 mr-2">
+                      Showing {((currentPage - 1) * pageSize + 1).toLocaleString()} - {Math.min(currentPage * pageSize, totalItems).toLocaleString()}
+                    </span>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage <= 1}
+                      disabled={currentPage <= 1 || isLoading}
                     >
                       Previous
                     </Button>
@@ -255,7 +281,7 @@ export default function Dictionary() {
                       variant="outline" 
                       size="sm" 
                       onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={!dictionaryResponse?.total_pages || currentPage >= dictionaryResponse.total_pages}
+                      disabled={currentPage >= totalPages || isLoading}
                     >
                       Next
                     </Button>
@@ -275,7 +301,7 @@ export default function Dictionary() {
                 </TableHeader>
                 <TableBody>
                   {terms.map((term: any, index: number) => (
-                    <TableRow key={term.name || term.id || index}>
+                    <TableRow key={`${term.id || term.name || 'term'}-${index}-${currentPage}`}>
                       <TableCell className="font-medium">{term.name}</TableCell>
                       <TableCell>{term.kurdish || '-'}</TableCell>
                       <TableCell>{term.arabic || '-'}</TableCell>
