@@ -10,17 +10,24 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { noteSchema } from "@shared/schema";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function Notes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingNote, setEditingNote] = useState<any>(null);
+  
+  // Search, filter, and sort state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   const form = useForm({
     resolver: zodResolver(noteSchema),
@@ -37,10 +44,63 @@ export default function Notes() {
     queryFn: api.notes.getAll,
   });
 
-  let notes: any[] = [];
+  let allNotes: any[] = [];
   if (notesResponse) {
-    notes = Array.isArray(notesResponse) ? notesResponse : notesResponse.items || [];
+    allNotes = Array.isArray(notesResponse) ? notesResponse : notesResponse.items || [];
   }
+
+  // Get unique categories for filtering
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(allNotes.map((note: any) => note.category).filter(Boolean))) as string[];
+    return cats.sort();
+  }, [allNotes]);
+
+  // Filter, search, and sort notes
+  const filteredAndSortedNotes = useMemo(() => {
+    let filtered = [...allNotes];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((note: any) =>
+        note.name?.toLowerCase().includes(search) ||
+        note.content?.toLowerCase().includes(search) ||
+        note.category?.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply category filter
+    if (activeFilters.category) {
+      filtered = filtered.filter((note: any) => note.category === activeFilters.category);
+    }
+
+    // Apply sorting
+    filtered.sort((a: any, b: any) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'category':
+          aValue = a.category || '';
+          bValue = b.category || '';
+          break;
+        default:
+          aValue = a.name || '';
+          bValue = b.name || '';
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [allNotes, searchTerm, activeFilters, sortBy, sortDirection]);
+
+  const notes = filteredAndSortedNotes;
 
   const createNoteMutation = useMutation({
     mutationFn: api.notes.create,
@@ -145,9 +205,41 @@ export default function Notes() {
       {/* Notes Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Notes ({notes.length})</CardTitle>
+          <CardTitle>Notes Database</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Search, Filter, and Sort Controls */}
+          <SearchFilterSort
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortOptions={[
+              { value: "name", label: "Title", key: "name" },
+              { value: "category", label: "Category", key: "category" },
+            ]}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={(key, direction) => {
+              setSortBy(key);
+              setSortDirection(direction);
+            }}
+            filterOptions={[
+              {
+                key: "category",
+                label: "Category",
+                options: categories.map((cat: string) => ({ value: cat, label: cat })),
+              },
+            ]}
+            activeFilters={activeFilters}
+            onFilterChange={(key, value) => {
+              setActiveFilters(prev => ({ ...prev, [key]: value }));
+            }}
+            onClearFilters={() => setActiveFilters({})}
+            placeholder="Search notes by title, content, or category..."
+            totalItems={allNotes.length}
+            filteredItems={notes.length}
+          />
+          
+          <div className="mt-6">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <LoadingSpinner size="lg" />
@@ -236,6 +328,7 @@ export default function Notes() {
               </TableBody>
             </Table>
           )}
+          </div>
         </CardContent>
       </Card>
 

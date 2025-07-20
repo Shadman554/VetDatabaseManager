@@ -10,17 +10,24 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { diseaseSchema } from "@shared/schema";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function Diseases() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingDisease, setEditingDisease] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  
+  // Search, filter, and sort state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   const form = useForm({
     resolver: zodResolver(diseaseSchema),
@@ -49,23 +56,67 @@ export default function Diseases() {
   });
 
   // Handle different API response formats - ensure we always have an array
-  let diseases = [];
+  let allDiseases = [];
   if (diseasesResponse) {
     if (Array.isArray(diseasesResponse)) {
-      diseases = diseasesResponse;
+      allDiseases = diseasesResponse;
     } else if (diseasesResponse.items && Array.isArray(diseasesResponse.items)) {
-      diseases = diseasesResponse.items;
+      allDiseases = diseasesResponse.items;
     } else if (diseasesResponse.diseases && Array.isArray(diseasesResponse.diseases)) {
-      diseases = diseasesResponse.diseases;
+      allDiseases = diseasesResponse.diseases;
     } else if (diseasesResponse.data && Array.isArray(diseasesResponse.data)) {
-      diseases = diseasesResponse.data;
+      allDiseases = diseasesResponse.data;
     } else if (diseasesResponse.results && Array.isArray(diseasesResponse.results)) {
-      diseases = diseasesResponse.results;
+      allDiseases = diseasesResponse.results;
     } else {
       console.warn('Unexpected diseases response format:', diseasesResponse);
-      diseases = [];
+      allDiseases = [];
     }
   }
+
+  // Filter, search, and sort diseases
+  const filteredAndSortedDiseases = useMemo(() => {
+    let filtered = [...allDiseases];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((disease: any) =>
+        disease.name?.toLowerCase().includes(search) ||
+        disease.kurdish?.toLowerCase().includes(search) ||
+        disease.symptoms?.toLowerCase().includes(search) ||
+        disease.cause?.toLowerCase().includes(search) ||
+        disease.control?.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a: any, b: any) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'kurdish':
+          aValue = a.kurdish || '';
+          bValue = b.kurdish || '';
+          break;
+        default:
+          aValue = a.name || '';
+          bValue = b.name || '';
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [allDiseases, searchTerm, sortBy, sortDirection]);
+
+  const diseases = filteredAndSortedDiseases;
 
   // Create disease mutation
   const createDiseaseMutation = useMutation({
@@ -177,9 +228,35 @@ export default function Diseases() {
       {/* Diseases Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Diseases ({diseases.length})</CardTitle>
+          <CardTitle>Diseases Database</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Search, Filter, and Sort Controls */}
+          <SearchFilterSort
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortOptions={[
+              { value: "name", label: "English Name", key: "name" },
+              { value: "kurdish", label: "Kurdish Name", key: "kurdish" },
+            ]}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={(key, direction) => {
+              setSortBy(key);
+              setSortDirection(direction);
+            }}
+            filterOptions={[]} // No additional filters for diseases
+            activeFilters={activeFilters}
+            onFilterChange={(key, value) => {
+              setActiveFilters(prev => ({ ...prev, [key]: value }));
+            }}
+            onClearFilters={() => setActiveFilters({})}
+            placeholder="Search diseases by name, symptoms, cause, or control..."
+            totalItems={allDiseases.length}
+            filteredItems={diseases.length}
+          />
+          
+          <div className="mt-6">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <LoadingSpinner size="lg" />
@@ -253,6 +330,7 @@ export default function Diseases() {
               </TableBody>
             </Table>
           )}
+          </div>
         </CardContent>
       </Card>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { bookSchema, type Book } from "@shared/schema";
 import { api } from "@/lib/api";
 import { Edit2, Trash2, ExternalLink, Plus } from "lucide-react";
+import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function Books() {
   const { toast } = useToast();
@@ -25,6 +26,12 @@ export default function Books() {
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  
+  // Search, filter, and sort state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("title");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   const form = useForm({
     resolver: zodResolver(bookSchema),
@@ -64,21 +71,78 @@ export default function Books() {
   });
 
   // Handle different response formats from the API - ensure we always have an array
-  let books = [];
+  let allBooks = [];
   if (booksResponse) {
     if (Array.isArray(booksResponse)) {
-      books = booksResponse;
+      allBooks = booksResponse;
     } else if (booksResponse.items && Array.isArray(booksResponse.items)) {
-      books = booksResponse.items;
+      allBooks = booksResponse.items;
     } else if (booksResponse.books && Array.isArray(booksResponse.books)) {
-      books = booksResponse.books;
+      allBooks = booksResponse.books;
     } else if (booksResponse.data && Array.isArray(booksResponse.data)) {
-      books = booksResponse.data;
+      allBooks = booksResponse.data;
     } else {
       console.warn('Unexpected books response format:', booksResponse);
-      books = [];
+      allBooks = [];
     }
   }
+
+  // Get unique categories for filtering
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(allBooks.map((book: any) => book.category).filter(Boolean))) as string[];
+    return cats.sort();
+  }, [allBooks]);
+
+  // Filter, search, and sort books
+  const filteredAndSortedBooks = useMemo(() => {
+    let filtered = [...allBooks];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(book =>
+        book.title?.toLowerCase().includes(search) ||
+        book.description?.toLowerCase().includes(search) ||
+        book.category?.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply category filter
+    if (activeFilters.category) {
+      filtered = filtered.filter(book => book.category === activeFilters.category);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'title':
+          aValue = a.title || '';
+          bValue = b.title || '';
+          break;
+        case 'category':
+          aValue = a.category || '';
+          bValue = b.category || '';
+          break;
+        case 'added_at':
+          aValue = a.added_at || '';
+          bValue = b.added_at || '';
+          break;
+        default:
+          aValue = a.title || '';
+          bValue = b.title || '';
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [allBooks, searchTerm, activeFilters, sortBy, sortDirection]);
+
+  const books = filteredAndSortedBooks;
 
   const createBookMutation = useMutation({
     mutationFn: api.books.create,
@@ -316,10 +380,43 @@ export default function Books() {
         <TabsContent value="list">
           <Card>
             <CardHeader>
-              <CardTitle>All Books ({books.length})</CardTitle>
+              <CardTitle>Books Library</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {/* Search, Filter, and Sort Controls */}
+              <SearchFilterSort
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                sortOptions={[
+                  { value: "title", label: "Title", key: "title" },
+                  { value: "category", label: "Category", key: "category" },
+                  { value: "added_at", label: "Date Added", key: "added_at" },
+                ]}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+                onSortChange={(key, direction) => {
+                  setSortBy(key);
+                  setSortDirection(direction);
+                }}
+                filterOptions={[
+                  {
+                    key: "category",
+                    label: "Category",
+                    options: categories.map((cat: string) => ({ value: cat, label: cat })),
+                  },
+                ]}
+                activeFilters={activeFilters}
+                onFilterChange={(key, value) => {
+                  setActiveFilters(prev => ({ ...prev, [key]: value }));
+                }}
+                onClearFilters={() => setActiveFilters({})}
+                placeholder="Search books by title, description, or category..."
+                totalItems={allBooks.length}
+                filteredItems={books.length}
+              />
+              
+              <div className="mt-6">
+                {isLoading ? (
                 <div className="flex justify-center py-8">
                   <LoadingSpinner size="lg" />
                 </div>
@@ -415,6 +512,7 @@ export default function Books() {
                   ))}
                 </div>
               )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

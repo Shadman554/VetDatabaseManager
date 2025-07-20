@@ -10,17 +10,24 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { normalRangeSchema } from "@shared/schema";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function NormalRanges() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingRange, setEditingRange] = useState<any>(null);
+  
+  // Search, filter, and sort state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   const form = useForm({
     resolver: zodResolver(normalRangeSchema),
@@ -41,10 +48,77 @@ export default function NormalRanges() {
     queryFn: api.normalRanges.getAll,
   });
 
-  let ranges: any[] = [];
+  let allRanges: any[] = [];
   if (rangesResponse) {
-    ranges = Array.isArray(rangesResponse) ? rangesResponse : rangesResponse.items || [];
+    allRanges = Array.isArray(rangesResponse) ? rangesResponse : rangesResponse.items || [];
   }
+
+  // Get unique species and categories for filtering
+  const species = useMemo(() => {
+    const specs = Array.from(new Set(allRanges.map((range: any) => range.species).filter(Boolean))) as string[];
+    return specs.sort();
+  }, [allRanges]);
+
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(allRanges.map((range: any) => range.category).filter(Boolean))) as string[];
+    return cats.sort();
+  }, [allRanges]);
+
+  // Filter, search, and sort ranges
+  const filteredAndSortedRanges = useMemo(() => {
+    let filtered = [...allRanges];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((range: any) =>
+        range.name?.toLowerCase().includes(search) ||
+        range.species?.toLowerCase().includes(search) ||
+        range.category?.toLowerCase().includes(search) ||
+        range.unit?.toLowerCase().includes(search) ||
+        range.notes?.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply filters
+    if (activeFilters.species) {
+      filtered = filtered.filter((range: any) => range.species === activeFilters.species);
+    }
+    if (activeFilters.category) {
+      filtered = filtered.filter((range: any) => range.category === activeFilters.category);
+    }
+
+    // Apply sorting
+    filtered.sort((a: any, b: any) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'species':
+          aValue = a.species || '';
+          bValue = b.species || '';
+          break;
+        case 'category':
+          aValue = a.category || '';
+          bValue = b.category || '';
+          break;
+        default:
+          aValue = a.name || '';
+          bValue = b.name || '';
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [allRanges, searchTerm, activeFilters, sortBy, sortDirection]);
+
+  const ranges = filteredAndSortedRanges;
 
   const createRangeMutation = useMutation({
     mutationFn: api.normalRanges.create,
@@ -153,9 +227,47 @@ export default function NormalRanges() {
       {/* Normal Ranges Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Normal Ranges ({ranges.length})</CardTitle>
+          <CardTitle>Normal Ranges Database</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Search, Filter, and Sort Controls */}
+          <SearchFilterSort
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortOptions={[
+              { value: "name", label: "Parameter Name", key: "name" },
+              { value: "species", label: "Species", key: "species" },
+              { value: "category", label: "Category", key: "category" },
+            ]}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={(key, direction) => {
+              setSortBy(key);
+              setSortDirection(direction);
+            }}
+            filterOptions={[
+              {
+                key: "species",
+                label: "Species",
+                options: species.map((spec: string) => ({ value: spec, label: spec })),
+              },
+              {
+                key: "category",
+                label: "Category",
+                options: categories.map((cat: string) => ({ value: cat, label: cat })),
+              },
+            ]}
+            activeFilters={activeFilters}
+            onFilterChange={(key, value) => {
+              setActiveFilters(prev => ({ ...prev, [key]: value }));
+            }}
+            onClearFilters={() => setActiveFilters({})}
+            placeholder="Search normal ranges by parameter, species, or unit..."
+            totalItems={allRanges.length}
+            filteredItems={ranges.length}
+          />
+          
+          <div className="mt-6">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <LoadingSpinner size="lg" />
@@ -255,6 +367,7 @@ export default function NormalRanges() {
               </TableBody>
             </Table>
           )}
+          </div>
         </CardContent>
       </Card>
 

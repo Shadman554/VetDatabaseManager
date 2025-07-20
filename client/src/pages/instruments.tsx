@@ -10,17 +10,24 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { instrumentSchema } from "@shared/schema";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function Instruments() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingInstrument, setEditingInstrument] = useState<any>(null);
+  
+  // Search, filter, and sort state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   const form = useForm({
     resolver: zodResolver(instrumentSchema),
@@ -38,10 +45,64 @@ export default function Instruments() {
     queryFn: api.instruments.getAll,
   });
 
-  let instruments: any[] = [];
+  let allInstruments: any[] = [];
   if (instrumentsResponse) {
-    instruments = Array.isArray(instrumentsResponse) ? instrumentsResponse : instrumentsResponse.items || [];
+    allInstruments = Array.isArray(instrumentsResponse) ? instrumentsResponse : instrumentsResponse.items || [];
   }
+
+  // Get unique categories for filtering
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(allInstruments.map((instrument: any) => instrument.category).filter(Boolean))) as string[];
+    return cats.sort();
+  }, [allInstruments]);
+
+  // Filter, search, and sort instruments
+  const filteredAndSortedInstruments = useMemo(() => {
+    let filtered = [...allInstruments];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((instrument: any) =>
+        instrument.name?.toLowerCase().includes(search) ||
+        instrument.description?.toLowerCase().includes(search) ||
+        instrument.usage?.toLowerCase().includes(search) ||
+        instrument.category?.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply category filter
+    if (activeFilters.category) {
+      filtered = filtered.filter((instrument: any) => instrument.category === activeFilters.category);
+    }
+
+    // Apply sorting
+    filtered.sort((a: any, b: any) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'category':
+          aValue = a.category || '';
+          bValue = b.category || '';
+          break;
+        default:
+          aValue = a.name || '';
+          bValue = b.name || '';
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [allInstruments, searchTerm, activeFilters, sortBy, sortDirection]);
+
+  const instruments = filteredAndSortedInstruments;
 
   const createInstrumentMutation = useMutation({
     mutationFn: api.instruments.create,
@@ -147,9 +208,41 @@ export default function Instruments() {
       {/* Instruments Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Instruments ({instruments.length})</CardTitle>
+          <CardTitle>Instruments Database</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Search, Filter, and Sort Controls */}
+          <SearchFilterSort
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortOptions={[
+              { value: "name", label: "Name", key: "name" },
+              { value: "category", label: "Category", key: "category" },
+            ]}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={(key, direction) => {
+              setSortBy(key);
+              setSortDirection(direction);
+            }}
+            filterOptions={[
+              {
+                key: "category",
+                label: "Category",
+                options: categories.map((cat: string) => ({ value: cat, label: cat })),
+              },
+            ]}
+            activeFilters={activeFilters}
+            onFilterChange={(key, value) => {
+              setActiveFilters(prev => ({ ...prev, [key]: value }));
+            }}
+            onClearFilters={() => setActiveFilters({})}
+            placeholder="Search instruments by name, usage, or description..."
+            totalItems={allInstruments.length}
+            filteredItems={instruments.length}
+          />
+          
+          <div className="mt-6">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <LoadingSpinner size="lg" />
@@ -240,6 +333,7 @@ export default function Instruments() {
               </TableBody>
             </Table>
           )}
+          </div>
         </CardContent>
       </Card>
 

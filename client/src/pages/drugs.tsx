@@ -11,17 +11,24 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { drugSchema } from "@shared/schema";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function Drugs() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingDrug, setEditingDrug] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  
+  // Search, filter, and sort state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   const form = useForm({
     resolver: zodResolver(drugSchema),
@@ -50,21 +57,80 @@ export default function Drugs() {
   });
 
   // Handle different API response formats
-  let drugs = [];
+  let allDrugs = [];
   if (drugsResponse) {
     if (Array.isArray(drugsResponse)) {
-      drugs = drugsResponse;
+      allDrugs = drugsResponse;
     } else if (drugsResponse.items && Array.isArray(drugsResponse.items)) {
-      drugs = drugsResponse.items;
+      allDrugs = drugsResponse.items;
     } else if (drugsResponse.drugs && Array.isArray(drugsResponse.drugs)) {
-      drugs = drugsResponse.drugs;
+      allDrugs = drugsResponse.drugs;
     } else if (drugsResponse.data && Array.isArray(drugsResponse.data)) {
-      drugs = drugsResponse.data;
+      allDrugs = drugsResponse.data;
     } else {
       console.warn('Unexpected drugs response format:', drugsResponse);
-      drugs = [];
+      allDrugs = [];
     }
   }
+
+  // Get unique drug classes for filtering
+  const drugClasses = useMemo(() => {
+    const classes = Array.from(new Set(allDrugs.map((drug: any) => drug.drug_class).filter(Boolean))) as string[];
+    return classes.sort();
+  }, [allDrugs]);
+
+  // Filter, search, and sort drugs
+  const filteredAndSortedDrugs = useMemo(() => {
+    let filtered = [...allDrugs];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((drug: any) =>
+        drug.name?.toLowerCase().includes(search) ||
+        drug.usage?.toLowerCase().includes(search) ||
+        drug.side_effect?.toLowerCase().includes(search) ||
+        drug.other_info?.toLowerCase().includes(search) ||
+        drug.drug_class?.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply drug class filter
+    if (activeFilters.drug_class) {
+      filtered = filtered.filter((drug: any) => drug.drug_class === activeFilters.drug_class);
+    }
+
+    // Apply sorting
+    filtered.sort((a: any, b: any) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'drug_class':
+          aValue = a.drug_class || '';
+          bValue = b.drug_class || '';
+          break;
+        case 'created_at':
+          aValue = a.created_at || '';
+          bValue = b.created_at || '';
+          break;
+        default:
+          aValue = a.name || '';
+          bValue = b.name || '';
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [allDrugs, searchTerm, activeFilters, sortBy, sortDirection]);
+
+  const drugs = filteredAndSortedDrugs;
 
   const createDrugMutation = useMutation({
     mutationFn: api.drugs.create,
@@ -171,9 +237,42 @@ export default function Drugs() {
       {/* Drugs Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Drugs ({drugs.length})</CardTitle>
+          <CardTitle>Pharmaceutical Database</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Search, Filter, and Sort Controls */}
+          <SearchFilterSort
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortOptions={[
+              { value: "name", label: "Drug Name", key: "name" },
+              { value: "drug_class", label: "Drug Class", key: "drug_class" },
+              { value: "created_at", label: "Date Added", key: "created_at" },
+            ]}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={(key, direction) => {
+              setSortBy(key);
+              setSortDirection(direction);
+            }}
+            filterOptions={[
+              {
+                key: "drug_class",
+                label: "Drug Class",
+                options: drugClasses.map(cls => ({ value: cls, label: cls })),
+              },
+            ]}
+            activeFilters={activeFilters}
+            onFilterChange={(key, value) => {
+              setActiveFilters(prev => ({ ...prev, [key]: value }));
+            }}
+            onClearFilters={() => setActiveFilters({})}
+            placeholder="Search drugs by name, usage, side effects, or class..."
+            totalItems={allDrugs.length}
+            filteredItems={drugs.length}
+          />
+          
+          <div className="mt-6">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <LoadingSpinner size="lg" />
@@ -270,6 +369,7 @@ export default function Drugs() {
               </TableBody>
             </Table>
           )}
+          </div>
         </CardContent>
       </Card>
 
