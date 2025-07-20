@@ -140,16 +140,16 @@ export const api = {
       return response.json();
     },
 
-    update: async (id: string | number, data: any) => {
-      const response = await makeRequest(`/api/books/${id}/`, {
+    update: async (title: string, data: any) => {
+      const response = await makeRequest(`/api/books/${encodeURIComponent(title)}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
       return response.json();
     },
 
-    delete: async (id: string | number) => {
-      const response = await makeRequest(`/api/books/${id}/`, {
+    delete: async (title: string) => {
+      const response = await makeRequest(`/api/books/${encodeURIComponent(title)}`, {
         method: 'DELETE',
       });
       return response.ok;
@@ -176,16 +176,16 @@ export const api = {
       return response.json();
     },
 
-    update: async (id: string | number, data: any) => {
-      const response = await makeRequest(`/api/diseases/${id}/`, {
+    update: async (name: string, data: any) => {
+      const response = await makeRequest(`/api/diseases/${encodeURIComponent(name)}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
       return response.json();
     },
 
-    delete: async (id: string | number) => {
-      const response = await makeRequest(`/api/diseases/${id}/`, {
+    delete: async (name: string) => {
+      const response = await makeRequest(`/api/diseases/${encodeURIComponent(name)}`, {
         method: 'DELETE',
       });
       return response.ok;
@@ -207,16 +207,16 @@ export const api = {
       return response.json();
     },
 
-    update: async (id: string | number, data: any) => {
-      const response = await makeRequest(`/api/drugs/${id}/`, {
+    update: async (name: string, data: any) => {
+      const response = await makeRequest(`/api/drugs/${encodeURIComponent(name)}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
       return response.json();
     },
 
-    delete: async (id: string | number) => {
-      const response = await makeRequest(`/api/drugs/${id}/`, {
+    delete: async (name: string) => {
+      const response = await makeRequest(`/api/drugs/${encodeURIComponent(name)}`, {
         method: 'DELETE',
       });
       return response.ok;
@@ -242,6 +242,21 @@ export const api = {
       const response = await makeRequest(`/api/dictionary/${queryString}`);
       return response.json();
     },
+
+    update: async (name: string, data: any) => {
+      const response = await makeRequest(`/api/dictionary/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (name: string) => {
+      const response = await makeRequest(`/api/dictionary/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
   },
 
   staff: {
@@ -258,6 +273,21 @@ export const api = {
       const response = await makeRequest(`/api/staff/${queryString}`);
       return response.json();
     },
+
+    update: async (name: string, data: any) => {
+      const response = await makeRequest(`/api/staff/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (name: string) => {
+      const response = await makeRequest(`/api/staff/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
   },
 
   normalRanges: {
@@ -273,6 +303,21 @@ export const api = {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
       const response = await makeRequest(`/api/normal-ranges/${queryString}`);
       return response.json();
+    },
+
+    update: async (name: string, data: any) => {
+      const response = await makeRequest(`/api/normal-ranges/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (name: string) => {
+      const response = await makeRequest(`/api/normal-ranges/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
     },
     
     getSpecies: async () => {
@@ -348,6 +393,21 @@ export const api = {
       const response = await makeRequest(`/api/notifications/${queryString}`);
       return response.json();
     },
+
+    update: async (title: string, data: any) => {
+      const response = await makeRequest(`/api/notifications/${encodeURIComponent(title)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (title: string) => {
+      const response = await makeRequest(`/api/notifications/${encodeURIComponent(title)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
   },
 
   appLinks: {
@@ -363,6 +423,21 @@ export const api = {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
       const response = await makeRequest(`/api/app-links/${queryString}`);
       return response.json();
+    },
+
+    update: async (title: string, data: any) => {
+      const response = await makeRequest(`/api/app-links/${encodeURIComponent(title)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (title: string) => {
+      const response = await makeRequest(`/api/app-links/${encodeURIComponent(title)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
     },
   },
 
