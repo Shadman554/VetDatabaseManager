@@ -34,15 +34,38 @@ export default function Diseases() {
   });
 
   // Fetch diseases
-  const { data: diseasesResponse, isLoading } = useQuery({
+  const { data: diseasesResponse, isLoading, error } = useQuery({
     queryKey: ['diseases'],
-    queryFn: () => api.diseases.getAll(),
+    queryFn: async () => {
+      try {
+        const response = await api.diseases.getAll();
+        console.log('Diseases API response:', response);
+        return response;
+      } catch (err) {
+        console.error('Diseases API error:', err);
+        throw err;
+      }
+    },
   });
 
-  // Handle different API response formats
-  const diseases = Array.isArray(diseasesResponse) ? diseasesResponse : 
-                   diseasesResponse?.data ? diseasesResponse.data : 
-                   diseasesResponse?.results ? diseasesResponse.results : [];
+  // Handle different API response formats - ensure we always have an array
+  let diseases = [];
+  if (diseasesResponse) {
+    if (Array.isArray(diseasesResponse)) {
+      diseases = diseasesResponse;
+    } else if (diseasesResponse.items && Array.isArray(diseasesResponse.items)) {
+      diseases = diseasesResponse.items;
+    } else if (diseasesResponse.diseases && Array.isArray(diseasesResponse.diseases)) {
+      diseases = diseasesResponse.diseases;
+    } else if (diseasesResponse.data && Array.isArray(diseasesResponse.data)) {
+      diseases = diseasesResponse.data;
+    } else if (diseasesResponse.results && Array.isArray(diseasesResponse.results)) {
+      diseases = diseasesResponse.results;
+    } else {
+      console.warn('Unexpected diseases response format:', diseasesResponse);
+      diseases = [];
+    }
+  }
 
   // Create disease mutation
   const createDiseaseMutation = useMutation({
@@ -67,7 +90,7 @@ export default function Diseases() {
 
   // Update disease mutation
   const updateDiseaseMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string | number; data: any }) => api.diseases.update(id, data),
+    mutationFn: ({ name, data }: { name: string; data: any }) => api.diseases.update(name, data),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -108,10 +131,14 @@ export default function Diseases() {
 
   const onSubmit = (data: any) => {
     if (editingDisease) {
-      updateDiseaseMutation.mutate({ id: editingDisease.id, data });
+      updateDiseaseMutation.mutate({ name: editingDisease.name, data });
     } else {
       createDiseaseMutation.mutate(data);
     }
+  };
+
+  const handleDelete = (name: string) => {
+    deleteDiseaseMutation.mutate(name);
   };
 
   const handleEdit = (disease: any) => {
@@ -132,9 +159,7 @@ export default function Diseases() {
     form.reset();
   };
 
-  const handleDelete = (id: string | number) => {
-    deleteDiseaseMutation.mutate(id);
-  };
+
 
   return (
     <div className="p-6 space-y-6">
@@ -213,7 +238,7 @@ export default function Diseases() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(disease.id)}
+                                onClick={() => handleDelete(disease.name)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Delete
