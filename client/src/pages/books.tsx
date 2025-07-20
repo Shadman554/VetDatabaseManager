@@ -68,6 +68,8 @@ export default function Books() {
   if (booksResponse) {
     if (Array.isArray(booksResponse)) {
       books = booksResponse;
+    } else if (booksResponse.items && Array.isArray(booksResponse.items)) {
+      books = booksResponse.items;
     } else if (booksResponse.books && Array.isArray(booksResponse.books)) {
       books = booksResponse.books;
     } else if (booksResponse.data && Array.isArray(booksResponse.data)) {
