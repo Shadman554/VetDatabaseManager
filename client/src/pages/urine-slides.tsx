@@ -139,10 +139,14 @@ export default function UrineSlides() {
           <h2 className="text-2xl font-semibold text-foreground mb-2">Urine Slides Management</h2>
           <p className="text-muted-foreground">Manage urine microscopy slide images and findings</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Slide
-        </Button>
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Slide
+            </Button>
+          </DialogTrigger>
+        </Dialog>
       </div>
 
       {/* Urine Slides Table */}
@@ -169,10 +173,14 @@ export default function UrineSlides() {
               <p className="text-sm text-muted-foreground mb-4">
                 Start by adding your first urine microscopy slide
               </p>
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add First Slide
-              </Button>
+              <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Slide
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
             </div>
           ) : (
             <Table>
@@ -252,18 +260,14 @@ export default function UrineSlides() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Form */}
-      {showForm && (
-        <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>{editingSlide ? 'Edit Urine Slide' : 'Add New Urine Slide'}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+      {/* Add/Edit Form Modal */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingSlide ? 'Edit Urine Slide' : 'Add New Urine Slide'}
+            </DialogTitle>
+          </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -335,32 +339,31 @@ export default function UrineSlides() {
               />
 
               <div className="flex justify-end space-x-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={createSlideMutation.isPending || updateSlideMutation.isPending}
-                  >
-                    {createSlideMutation.isPending || updateSlideMutation.isPending ? (
-                      <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        {editingSlide ? 'Updating...' : 'Adding...'}
-                      </>
-                    ) : (
-                      editingSlide ? 'Update Slide' : 'Add Slide'
-                    )}
-                  </Button>
-                </div>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCancelEdit}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createSlideMutation.isPending || updateSlideMutation.isPending}
+                >
+                  {createSlideMutation.isPending || updateSlideMutation.isPending ? (
+                    <>
+                      <LoadingSpinner size="sm" className="mr-2" />
+                      {editingSlide ? 'Updating...' : 'Adding...'}
+                    </>
+                  ) : (
+                    editingSlide ? 'Update Slide' : 'Add Slide'
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
-        </CardContent>
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

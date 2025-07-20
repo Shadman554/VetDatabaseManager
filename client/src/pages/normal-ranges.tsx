@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import SearchFilterSort from "@/components/ui/search-filter-sort";
@@ -218,10 +219,14 @@ export default function NormalRanges() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">Normal Ranges Management</h2>
           <p className="text-gray-600">Manage normal laboratory and clinical ranges</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Range
-        </Button>
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Range
+            </Button>
+          </DialogTrigger>
+        </Dialog>
       </div>
 
       {/* Normal Ranges Table */}
@@ -286,10 +291,14 @@ export default function NormalRanges() {
               <p className="text-sm text-gray-600 mb-4">
                 Start by adding your first normal range reference
               </p>
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add First Range
-              </Button>
+              <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Range
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
             </div>
           ) : (
             <Table>
@@ -371,18 +380,14 @@ export default function NormalRanges() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Form */}
-      {showForm && (
-        <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>{editingRange ? 'Edit Normal Range' : 'Add New Normal Range'}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+      {/* Add/Edit Form Modal */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingRange ? 'Edit Normal Range' : 'Add New Normal Range'}
+            </DialogTitle>
+          </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -527,9 +532,8 @@ export default function NormalRanges() {
               </div>
             </form>
           </Form>
-        </CardContent>
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
