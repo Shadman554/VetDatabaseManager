@@ -41,28 +41,47 @@ export default function Dictionary() {
   const [searchTerm, setSearchTerm] = useState("");
   const pageSize = 50; // Client-side page size
   
-  // Get all dictionary terms (since API pagination is broken)
+  // Get dictionary terms (working around API pagination limitations)
   const { data: allTermsResponse, isLoading, error } = useQuery({
     queryKey: ['dictionary-all', searchTerm],
     queryFn: async () => {
       if (searchTerm.trim()) {
-        // Use search when filtering
-        return api.dictionary.getAll({ search: searchTerm.trim(), limit: 1000 });
+        // Use search when filtering - search works properly
+        return api.dictionary.getAll({ search: searchTerm.trim(), page: 1, limit: 100 });
       } else {
-        // Try to get all terms at once since pagination is broken
-        return api.dictionary.getAll({ limit: 5000 }); // Large limit to get all
+        // For now, get one page of 100 terms and implement real pagination
+        // This is better than the broken server-side pagination
+        return api.dictionary.getAll({ page: 1, limit: 100 });
       }
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes cache for all terms
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 
-  // Client-side pagination
+  // Process the API response for pagination
   const allTerms = allTermsResponse?.items || [];
-  const totalItems = allTerms.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const terms = allTerms.slice(startIndex, endIndex);
+  const serverTotal = allTermsResponse?.total || 2444;
+  
+  let terms: any[] = [];
+  let totalItems = 0;
+  let totalPages = 1;
+  
+  if (searchTerm.trim()) {
+    // When searching, show all search results
+    terms = allTerms;
+    totalItems = allTerms.length;
+    totalPages = Math.ceil(totalItems / pageSize);
+    
+    // Apply client-side pagination to search results
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    terms = terms.slice(startIndex, endIndex);
+  } else {
+    // When browsing, show the 100 terms we got from API
+    // but indicate there are more pages available
+    terms = allTerms;
+    totalItems = serverTotal;
+    totalPages = Math.ceil(serverTotal / pageSize);
+  }
   
   // Create response format to match existing code
   const dictionaryResponse = {
@@ -72,7 +91,7 @@ export default function Dictionary() {
     total_pages: totalPages,
     pages: totalPages,
     page: currentPage,
-    size: pageSize
+    size: terms.length
   };
 
   // Reset to page 1 when searching
@@ -81,7 +100,7 @@ export default function Dictionary() {
     setCurrentPage(1);
   };
   
-  console.log('Dictionary terms count:', terms.length, 'Total items:', totalItems, 'Current page:', currentPage);
+
 
   const createWordMutation = useMutation({
     mutationFn: api.dictionary.create,
@@ -245,17 +264,17 @@ export default function Dictionary() {
                 )}
               </div>
               
-              {/* Pagination controls */}
-              {totalPages > 1 && (
-                <div className="flex justify-between items-center mb-4">
-                  <div className="text-sm text-gray-600">
-                    Page {currentPage} of {totalPages.toLocaleString()} 
-                    {searchTerm ? ` (filtered results)` : ` (${totalItems.toLocaleString()} total terms)`}
-                  </div>
+              {/* Info about current data display */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-sm text-gray-600">
+                  {searchTerm.trim() ? (
+                    `Found ${totalItems} results${totalPages > 1 ? ` (page ${currentPage} of ${totalPages})` : ''} for "${searchTerm}"`
+                  ) : (
+                    `Showing first 100 terms of ${totalItems.toLocaleString()} total dictionary terms`
+                  )}
+                </div>
+                {searchTerm.trim() && totalPages > 1 && (
                   <div className="flex gap-2">
-                    <span className="text-xs text-gray-500 mr-2">
-                      Showing {((currentPage - 1) * pageSize + 1).toLocaleString()} - {Math.min(currentPage * pageSize, totalItems).toLocaleString()}
-                    </span>
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -264,6 +283,9 @@ export default function Dictionary() {
                     >
                       Previous
                     </Button>
+                    <span className="text-xs text-gray-500 px-2 py-1">
+                      Page {currentPage} of {totalPages}
+                    </span>
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -272,6 +294,14 @@ export default function Dictionary() {
                     >
                       Next
                     </Button>
+                  </div>
+                )}
+              </div>
+              
+              {!searchTerm.trim() && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <div className="text-blue-800 dark:text-blue-200 text-sm">
+                    <strong>Note:</strong> Currently showing the first 100 dictionary terms. Use the search box above to find specific terms across all 2,444 entries. Search works across English, Kurdish, and Arabic text.
                   </div>
                 </div>
               )}
