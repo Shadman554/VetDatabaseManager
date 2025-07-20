@@ -36,14 +36,43 @@ export default function Dictionary() {
     },
   });
 
-  // Fetch dictionary terms
+  // Fetch ALL dictionary terms
   const { data: dictionaryResponse, isLoading, error } = useQuery({
     queryKey: ['dictionary'],
     queryFn: async () => {
       try {
-        const response = await api.dictionary.getAll();
-        console.log('Dictionary API response:', response);
-        return response;
+        // Fetch all pages to get all 2,444 terms
+        let allTerms: any[] = [];
+        let page = 1;
+        let hasMore = true;
+        
+        while (hasMore) {
+          const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${page}&limit=100`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('vetToken')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch dictionary terms');
+          }
+          
+          const data = await response.json();
+          console.log(`Dictionary page ${page} response:`, data);
+          
+          if (data.items && data.items.length > 0) {
+            allTerms = [...allTerms, ...data.items];
+            page++;
+            // If we got less than 100 items, we've reached the end
+            hasMore = data.items.length === 100;
+          } else {
+            hasMore = false;
+          }
+        }
+        
+        console.log(`Total dictionary terms fetched: ${allTerms.length}`);
+        return { items: allTerms };
       } catch (err) {
         console.error('Dictionary API error:', err);
         throw err;
@@ -52,16 +81,12 @@ export default function Dictionary() {
   });
 
   // Handle different API response formats
-  let terms = [];
+  let terms: any[] = [];
   if (dictionaryResponse) {
     if (Array.isArray(dictionaryResponse)) {
       terms = dictionaryResponse;
     } else if (dictionaryResponse.items && Array.isArray(dictionaryResponse.items)) {
       terms = dictionaryResponse.items;
-    } else if (dictionaryResponse.terms && Array.isArray(dictionaryResponse.terms)) {
-      terms = dictionaryResponse.terms;
-    } else if (dictionaryResponse.data && Array.isArray(dictionaryResponse.data)) {
-      terms = dictionaryResponse.data;
     } else {
       console.warn('Unexpected dictionary response format:', dictionaryResponse);
       terms = [];
