@@ -1,10 +1,33 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import fs from 'fs';
+import path from 'path';
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Simple session management for demo purposes
+  // Simple persistent session management
+  const sessionsFile = path.join(process.cwd(), '.sessions.json');
+  
+  // Load existing sessions
   let sessions: Map<string, any> = new Map();
+  try {
+    if (fs.existsSync(sessionsFile)) {
+      const data = JSON.parse(fs.readFileSync(sessionsFile, 'utf8'));
+      sessions = new Map(Object.entries(data));
+    }
+  } catch (error) {
+    console.log('No existing sessions found, starting fresh');
+  }
+
+  // Save sessions to file
+  const saveSessions = () => {
+    try {
+      const data = Object.fromEntries(sessions);
+      fs.writeFileSync(sessionsFile, JSON.stringify(data, null, 2));
+    } catch (error) {
+      console.error('Failed to save sessions:', error);
+    }
+  };
 
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
@@ -24,6 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create session token
       const token = Math.random().toString(36).substring(2);
       sessions.set(token, { userId: user.id, username: user.username });
+      saveSessions(); // Persist session to file
 
       res.json({ 
         access_token: token, 
@@ -45,6 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (token) {
       sessions.delete(token);
+      saveSessions(); // Persist session changes
     }
     res.json({ message: "Logged out successfully" });
   });
