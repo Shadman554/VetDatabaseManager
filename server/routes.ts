@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         access_token: token, 
         token_type: "bearer",
         user: {
-          id: user.id,
+          id: user.id.toString(),
           username: user.username,
           isAdmin: user.isAdmin
         }
@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json({
-        id: user.id,
+        id: user.id.toString(),
         username: user.username,
         isAdmin: user.isAdmin
       });

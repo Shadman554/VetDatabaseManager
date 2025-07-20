@@ -1,5 +1,5 @@
 export interface AuthUser {
-  id: string;
+  id: string | number;
   username: string;
   isAdmin: boolean;
 }

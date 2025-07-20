@@ -11,9 +11,7 @@ export function useAuth() {
   const login = async (username: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log('Attempting login with:', { username, password });
       const response = await api.login(username, password);
-      console.log('Login response:', response);
       
       if (!response.user || !response.access_token) {
         throw new Error('Invalid response format');
@@ -27,7 +25,6 @@ export function useAuth() {
       });
       return true;
     } catch (error) {
-      console.error('Login error:', error);
       toast({
         title: "Error", 
         description: error instanceof Error ? error.message : "Invalid credentials",
