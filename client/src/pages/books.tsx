@@ -49,10 +49,34 @@ export default function Books() {
   });
 
   // Fetch all books
-  const { data: books = [], isLoading, error } = useQuery({
+  const { data: booksResponse, isLoading, error } = useQuery({
     queryKey: ['books'],
-    queryFn: api.books.getAll,
+    queryFn: async () => {
+      try {
+        const response = await api.books.getAll();
+        console.log('Books API response:', response);
+        return response;
+      } catch (err) {
+        console.error('Books API error:', err);
+        throw err;
+      }
+    },
   });
+
+  // Handle different response formats from the API - ensure we always have an array
+  let books = [];
+  if (booksResponse) {
+    if (Array.isArray(booksResponse)) {
+      books = booksResponse;
+    } else if (booksResponse.books && Array.isArray(booksResponse.books)) {
+      books = booksResponse.books;
+    } else if (booksResponse.data && Array.isArray(booksResponse.data)) {
+      books = booksResponse.data;
+    } else {
+      console.warn('Unexpected books response format:', booksResponse);
+      books = [];
+    }
+  }
 
   const createBookMutation = useMutation({
     mutationFn: api.books.create,
@@ -318,8 +342,8 @@ export default function Books() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {books.map((book: Book) => (
-                    <Card key={book.title} className="relative">
+                  {books.map((book: Book, index: number) => (
+                    <Card key={book.title || index} className="relative">
                       <CardContent className="p-6">
                         <div className="flex justify-between items-start mb-4">
                           <h3 className="font-semibold text-lg line-clamp-2">{book.title}</h3>
