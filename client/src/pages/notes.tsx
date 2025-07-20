@@ -197,10 +197,82 @@ export default function Notes() {
           <h2 className="text-2xl font-semibold text-foreground mb-2">Notes Management</h2>
           <p className="text-muted-foreground">Manage educational notes and study materials</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Note
-        </Button>
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Note
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingNote ? 'Edit Note' : 'Add New Note'}</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Note Title *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter note title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Anatomy, Surgery, Diagnosis" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Content *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter note content, study materials, or educational information"
+                          rows={8}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end space-x-4">
+                  <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createNoteMutation.isPending || updateNoteMutation.isPending}>
+                    {createNoteMutation.isPending || updateNoteMutation.isPending 
+                      ? "Saving..." 
+                      : (editingNote ? "Update Note" : "Add Note")
+                    }
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Notes Table */}
@@ -333,96 +405,7 @@ export default function Notes() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Form */}
-      {showForm && (
-        <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>{editingNote ? 'Edit Note' : 'Add New Note'}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Note Title *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter note title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Lecture Notes, Clinical Cases, Study Guide" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Enter the note content here..."
-                        rows={10}
-                        className="min-h-[250px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <div className="flex justify-end space-x-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={createNoteMutation.isPending || updateNoteMutation.isPending}
-                  >
-                    {createNoteMutation.isPending || updateNoteMutation.isPending ? (
-                      <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        {editingNote ? 'Updating...' : 'Adding...'}
-                      </>
-                    ) : (
-                      editingNote ? 'Update Note' : 'Add Note'
-                    )}
-                  </Button>
-                </div>
-            </form>
-          </Form>
-        </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

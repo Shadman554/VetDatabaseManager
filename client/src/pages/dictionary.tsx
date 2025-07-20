@@ -14,6 +14,7 @@ import { api } from "@/lib/api";
 import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import SearchFilterSort from "@/components/ui/search-filter-sort";
@@ -268,10 +269,154 @@ export default function Dictionary() {
           <h2 className="text-2xl font-semibold text-foreground mb-2">Dictionary Management</h2>
           <p className="text-muted-foreground">Manage veterinary terms with multilingual definitions</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Term
-        </Button>
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Term
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingTerm ? 'Edit Dictionary Term' : 'Add New Dictionary Term'}</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>English Term *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter term in English" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="kurdish"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kurdish Term</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter term in Kurdish" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="arabic"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Arabic Term</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter term in Arabic" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter detailed description or definition"
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="barcode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Barcode</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter barcode if applicable" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="is_favorite"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Favorite</FormLabel>
+                          <FormMessage />
+                        </div>
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="h-4 w-4"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="is_saved"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Saved</FormLabel>
+                          <FormMessage />
+                        </div>
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="h-4 w-4"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="flex justify-end space-x-4">
+                  <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createWordMutation.isPending || updateWordMutation.isPending}>
+                    {createWordMutation.isPending || updateWordMutation.isPending 
+                      ? "Saving..." 
+                      : (editingTerm ? "Update Term" : "Add Term")
+                    }
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Dictionary Terms Table */}
@@ -472,132 +617,7 @@ export default function Dictionary() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Form Modal */}
-      {showForm && (
-        <Card className="border-2 border-blue-200">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>
-              {editingTerm ? 'Edit Dictionary Term' : 'Add New Dictionary Term'}
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCancelEdit}
-              className="flex items-center gap-1"
-            >
-              <X className="h-4 w-4" />
-              Cancel
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Term (English) *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter term in English" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="kurdish"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Term (Kurdish)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="زاراوە بە کوردی" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="arabic"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Term (Arabic)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="المصطلح بالعربية" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Definition/Description</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Enter comprehensive definition of the term"
-                          rows={4}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="barcode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Barcode/Reference ID</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Optional barcode or reference identifier"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-end space-x-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={createWordMutation.isPending || updateWordMutation.isPending}
-                  >
-                    {createWordMutation.isPending || updateWordMutation.isPending ? (
-                      <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        {editingTerm ? 'Updating...' : 'Adding...'}
-                      </>
-                    ) : (
-                      editingTerm ? 'Update Term' : 'Add Term'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
