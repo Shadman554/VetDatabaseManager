@@ -36,48 +36,13 @@ export default function Dictionary() {
     },
   });
 
-  // Fetch ALL dictionary terms
+  // Fetch dictionary terms with pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50; // Reasonable page size
+  
   const { data: dictionaryResponse, isLoading, error } = useQuery({
-    queryKey: ['dictionary'],
-    queryFn: async () => {
-      try {
-        // Fetch all pages to get all 2,444 terms
-        let allTerms: any[] = [];
-        let page = 1;
-        let hasMore = true;
-        
-        while (hasMore) {
-          const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${page}&limit=100`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('vetToken')}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error('Failed to fetch dictionary terms');
-          }
-          
-          const data = await response.json();
-          console.log(`Dictionary page ${page} response:`, data);
-          
-          if (data.items && data.items.length > 0) {
-            allTerms = [...allTerms, ...data.items];
-            page++;
-            // If we got less than 100 items, we've reached the end
-            hasMore = data.items.length === 100;
-          } else {
-            hasMore = false;
-          }
-        }
-        
-        console.log(`Total dictionary terms fetched: ${allTerms.length}`);
-        return { items: allTerms };
-      } catch (err) {
-        console.error('Dictionary API error:', err);
-        throw err;
-      }
-    },
+    queryKey: ['dictionary', currentPage],
+    queryFn: () => api.dictionary.getAll({ page: currentPage, limit: pageSize }),
   });
 
   // Handle different API response formats
@@ -202,7 +167,7 @@ export default function Dictionary() {
       {/* Dictionary Terms Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Dictionary Terms ({terms.length.toLocaleString()})</CardTitle>
+          <CardTitle>Dictionary Terms ({dictionaryResponse?.total_items || terms.length} total)</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -240,6 +205,31 @@ export default function Dictionary() {
                 </div>
               </div>
               
+              {/* Pagination controls */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-sm text-gray-600">
+                  Page {currentPage} of {dictionaryResponse?.total_pages || 1}
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={!dictionaryResponse?.total_pages || currentPage >= dictionaryResponse.total_pages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+              
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -251,7 +241,7 @@ export default function Dictionary() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {terms.slice(0, 50).map((term: any, index: number) => (
+                  {terms.map((term: any, index: number) => (
                     <TableRow key={term.name || term.id || index}>
                       <TableCell className="font-medium">{term.name}</TableCell>
                       <TableCell>{term.kurdish || '-'}</TableCell>
