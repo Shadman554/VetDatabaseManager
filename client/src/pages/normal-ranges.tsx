@@ -13,7 +13,7 @@ import { api } from "@/lib/api";
 import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import SearchFilterSort from "@/components/ui/search-filter-sort";
@@ -314,7 +314,7 @@ export default function NormalRanges() {
               </TableHeader>
               <TableBody>
                 {ranges.map((range: any, index: number) => (
-                  <TableRow key={range.name || range.id || index}>
+                  <TableRow key={`${range.name}-${range.species || 'unknown'}-${range.id || index}`}>
                     <TableCell className="font-medium">{range.name}</TableCell>
                     <TableCell>{range.species || '-'}</TableCell>
                     <TableCell>{range.category || '-'}</TableCell>
@@ -387,6 +387,12 @@ export default function NormalRanges() {
             <DialogTitle>
               {editingRange ? 'Edit Normal Range' : 'Add New Normal Range'}
             </DialogTitle>
+            <DialogDescription>
+              {editingRange 
+                ? 'Modify the normal range parameters and reference values.' 
+                : 'Enter the details for a new normal range reference.'
+              }
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
