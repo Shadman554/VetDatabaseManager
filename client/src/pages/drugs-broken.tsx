@@ -57,9 +57,21 @@ export default function Drugs() {
     },
   });
 
-  let allDrugs: any[] = [];
+  // Handle different API response formats
+  let allDrugs = [];
   if (drugsResponse) {
-    allDrugs = Array.isArray(drugsResponse) ? drugsResponse : drugsResponse.items || [];
+    if (Array.isArray(drugsResponse)) {
+      allDrugs = drugsResponse;
+    } else if (drugsResponse.items && Array.isArray(drugsResponse.items)) {
+      allDrugs = drugsResponse.items;
+    } else if (drugsResponse.drugs && Array.isArray(drugsResponse.drugs)) {
+      allDrugs = drugsResponse.drugs;
+    } else if (drugsResponse.data && Array.isArray(drugsResponse.data)) {
+      allDrugs = drugsResponse.data;
+    } else {
+      console.warn('Unexpected drugs response format:', drugsResponse);
+      allDrugs = [];
+    }
   }
 
   // Get unique drug classes for filtering
@@ -84,26 +96,36 @@ export default function Drugs() {
       );
     }
 
-    // Apply active filters
-    Object.entries(activeFilters).forEach(([key, value]) => {
-      if (value && value !== 'all') {
-        filtered = filtered.filter((drug: any) => drug[key] === value);
-      }
-    });
+    // Apply drug class filter
+    if (activeFilters.drug_class) {
+      filtered = filtered.filter((drug: any) => drug.drug_class === activeFilters.drug_class);
+    }
 
     // Apply sorting
     filtered.sort((a: any, b: any) => {
-      let aValue = a[sortBy] || '';
-      let bValue = b[sortBy] || '';
-      
-      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-      
-      if (sortDirection === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'drug_class':
+          aValue = a.drug_class || '';
+          bValue = b.drug_class || '';
+          break;
+        case 'created_at':
+          aValue = a.created_at || '';
+          bValue = b.created_at || '';
+          break;
+        default:
+          aValue = a.name || '';
+          bValue = b.name || '';
       }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
     });
 
     return filtered;
@@ -111,7 +133,6 @@ export default function Drugs() {
 
   const drugs = filteredAndSortedDrugs;
 
-  // Mutations
   const createDrugMutation = useMutation({
     mutationFn: api.drugs.create,
     onSuccess: () => {
@@ -123,10 +144,10 @@ export default function Drugs() {
       setShowForm(false);
       queryClient.invalidateQueries({ queryKey: ['drugs'] });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to add drug",
+        description: `Failed to add drug: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -144,10 +165,10 @@ export default function Drugs() {
       setShowForm(false);
       queryClient.invalidateQueries({ queryKey: ['drugs'] });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update drug",
+        description: `Failed to update drug: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -162,10 +183,10 @@ export default function Drugs() {
       });
       queryClient.invalidateQueries({ queryKey: ['drugs'] });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete drug",
+        description: `Failed to delete drug: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -377,7 +398,7 @@ export default function Drugs() {
               <div className="text-6xl mb-4">💊</div>
               <h3 className="text-lg font-medium text-foreground mb-2">No drugs yet</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Start by adding your first pharmaceutical entry
+                Start by adding your first pharmaceutical information
               </p>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -463,3 +484,148 @@ export default function Drugs() {
     </div>
   );
 }
+            <CardTitle>
+              {editingDrug ? 'Edit Drug' : 'Add New Drug'}
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancelEdit}
+              className="flex items-center gap-1"
+            >
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Drug Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter drug name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="drug_class"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Drug Class</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select drug class" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="antibiotic">Antibiotic</SelectItem>
+                            <SelectItem value="analgesic">Analgesic</SelectItem>
+                            <SelectItem value="anti-inflammatory">Anti-inflammatory</SelectItem>
+                            <SelectItem value="anesthetic">Anesthetic</SelectItem>
+                            <SelectItem value="antifungal">Antifungal</SelectItem>
+                            <SelectItem value="antiviral">Antiviral</SelectItem>
+                            <SelectItem value="antiparasitic">Antiparasitic</SelectItem>
+                            <SelectItem value="vaccine">Vaccine</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="usage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Usage/Indication</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe when and how to use this drug"
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="side_effect"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Side Effects</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="List potential side effects and adverse reactions"
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="other_info"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Information</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Dosage, contraindications, storage, etc."
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleCancelEdit}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createDrugMutation.isPending || updateDrugMutation.isPending}
+                  >
+                    {createDrugMutation.isPending || updateDrugMutation.isPending ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        {editingDrug ? 'Updating...' : 'Adding...'}
+                      </>
+                    ) : (
+                      editingDrug ? 'Update Drug' : 'Add Drug'
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+

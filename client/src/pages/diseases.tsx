@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import SearchFilterSort from "@/components/ui/search-filter-sort";
@@ -219,10 +220,118 @@ export default function Diseases() {
           <h2 className="text-2xl font-semibold text-foreground mb-2">Diseases Management</h2>
           <p className="text-muted-foreground">Manage disease information with multilingual support</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Disease
-        </Button>
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Disease
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingDisease ? 'Edit Disease' : 'Add New Disease'}</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Disease Name (English) *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter disease name in English" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="kurdish"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Disease Name (Kurdish) *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter disease name in Kurdish" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="symptoms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Symptoms *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe the symptoms of the disease"
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="cause"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cause *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe the cause of the disease"
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="control"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Control/Treatment *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Describe prevention and treatment methods"
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end space-x-4">
+                  <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createDiseaseMutation.isPending || updateDiseaseMutation.isPending}>
+                    {createDiseaseMutation.isPending || updateDiseaseMutation.isPending 
+                      ? "Saving..." 
+                      : (editingDisease ? "Update Disease" : "Add Disease")
+                    }
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Diseases Table */}
@@ -334,136 +443,7 @@ export default function Diseases() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Form Modal */}
-      {showForm && (
-        <Card className="border-2 border-blue-200">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>
-              {editingDisease ? 'Edit Disease' : 'Add New Disease'}
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCancelEdit}
-              className="flex items-center gap-1"
-            >
-              <X className="h-4 w-4" />
-              Cancel
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Disease Name (English) *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter disease name in English" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="kurdish"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Disease Name (Kurdish)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="ناوی نەخۆشی بە کوردی" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="symptoms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Symptoms</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="List main symptoms of the disease"
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="cause"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cause</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Describe the cause of the disease"
-                            rows={3}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="control"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Control/Treatment</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Treatment and control measures"
-                            rows={3}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createDiseaseMutation.isPending || updateDiseaseMutation.isPending}>
-                    {(createDiseaseMutation.isPending || updateDiseaseMutation.isPending) ? (
-                      <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        {editingDisease ? 'Updating...' : 'Adding...'}
-                      </>
-                    ) : (
-                      editingDisease ? 'Update Disease' : 'Add Disease'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
