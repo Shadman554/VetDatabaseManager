@@ -9,14 +9,59 @@ export class ApiError extends Error {
   }
 }
 
+class VetApiAuth {
+  private token: string | null = null;
+  private tokenExpiry: number | null = null;
+
+  async getToken(): Promise<string> {
+    // Check if we have a valid token
+    if (this.token && this.tokenExpiry && Date.now() < this.tokenExpiry) {
+      return this.token;
+    }
+
+    // Get credentials from server (which has access to environment variables)
+    const response = await fetch('/api/vet-auth');
+    if (!response.ok) {
+      throw new ApiError(response.status, 'Failed to get API credentials');
+    }
+    
+    const { token } = await response.json();
+    this.token = token;
+    // Set expiry to 55 minutes from now (assuming 1 hour token validity)
+    this.tokenExpiry = Date.now() + (55 * 60 * 1000);
+    
+    return token;
+  }
+
+  clearToken(): void {
+    this.token = null;
+    this.tokenExpiry = null;
+  }
+}
+
+const vetApiAuth = new VetApiAuth();
+
 async function makeRequest(endpoint: string, options: RequestInit = {}) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
   
-  const headers = {
+  let headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...authService.getAuthHeaders(),
-    ...options.headers,
+    ...(options.headers as Record<string, string> || {}),
   };
+
+  // Add external API authentication for external endpoints
+  if (url.includes(API_BASE_URL)) {
+    try {
+      const token = await vetApiAuth.getToken();
+      headers.Authorization = `Bearer ${token}`;
+    } catch (error) {
+      console.error('Failed to get API token:', error);
+      throw new ApiError(401, 'Failed to authenticate with veterinary API');
+    }
+  } else {
+    // Add local auth headers for local endpoints
+    headers = { ...headers, ...authService.getAuthHeaders() };
+  }
 
   const response = await fetch(url, {
     ...options,
@@ -25,6 +70,13 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    
+    // If unauthorized, clear token and retry once
+    if (response.status === 401 && url.includes(API_BASE_URL)) {
+      vetApiAuth.clearToken();
+      // Don't retry here to avoid infinite loops - let the user retry
+    }
+    
     throw new ApiError(response.status, errorText || `HTTP ${response.status}`);
   }
 

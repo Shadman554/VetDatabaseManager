@@ -76,6 +76,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // External API authentication endpoint
+  app.get('/api/vet-auth', async (req, res) => {
+    try {
+      const username = process.env.VET_API_USERNAME;
+      const password = process.env.VET_API_PASSWORD;
+      
+      if (!username || !password) {
+        return res.status(500).json({ error: 'API credentials not configured' });
+      }
+
+      // Authenticate with external API
+      const response = await fetch('https://python-database-production.up.railway.app/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return res.status(response.status).json({ error: errorText });
+      }
+
+      const { access_token } = await response.json();
+      res.json({ token: access_token });
+    } catch (error) {
+      console.error('External API auth error:', error);
+      res.status(500).json({ error: 'Failed to authenticate with external API' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
