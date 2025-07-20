@@ -263,8 +263,8 @@ export default function Dictionary() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground mb-2">Dictionary Management</h2>
           <p className="text-muted-foreground">Manage veterinary terms with multilingual definitions</p>
@@ -276,7 +276,7 @@ export default function Dictionary() {
               Add New Term
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingTerm ? 'Edit Dictionary Term' : 'Add New Dictionary Term'}</DialogTitle>
             </DialogHeader>
@@ -536,8 +536,9 @@ export default function Dictionary() {
                 </div>
               )}
               
-              <Table>
-                <TableHeader>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                   <TableRow>
                     <TableHead>English</TableHead>
                     <TableHead>Kurdish</TableHead>
@@ -556,7 +557,7 @@ export default function Dictionary() {
                         {term.description ? term.description.substring(0, 60) + '...' : '-'}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                           <Button
                             size="sm"
                             variant="outline"
@@ -599,8 +600,9 @@ export default function Dictionary() {
                       </TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </Table>
+                  </TableBody>
+                </Table>
+              </div>
               
               {terms.length > 50 && (
                 <div className="text-center py-4 border-t">

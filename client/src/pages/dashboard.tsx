@@ -52,7 +52,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="mb-8">
         <h2 className="text-2xl font-semibold text-foreground mb-2">Dashboard</h2>
         <p className="text-muted-foreground">Overview of your veterinary educational platform content</p>

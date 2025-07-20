@@ -133,8 +133,8 @@ export default function UrineSlides() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground mb-2">Urine Slides Management</h2>
           <p className="text-muted-foreground">Manage urine microscopy slide images and findings</p>
@@ -183,8 +183,9 @@ export default function UrineSlides() {
               </Dialog>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
@@ -211,7 +212,7 @@ export default function UrineSlides() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -254,8 +255,9 @@ export default function UrineSlides() {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -158,8 +158,8 @@ export default function Staff() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground mb-2">Staff Management</h2>
           <p className="text-muted-foreground">Manage staff member information and contacts</p>
@@ -208,8 +208,9 @@ export default function Staff() {
               </Dialog>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Position</TableHead>
@@ -235,7 +236,7 @@ export default function Staff() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -278,15 +279,16 @@ export default function Staff() {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Add/Edit Form Modal */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}

@@ -202,8 +202,8 @@ export default function Drugs() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground mb-2">Drugs Management</h2>
           <p className="text-muted-foreground">Manage pharmaceutical information with detailed drug data</p>
@@ -215,7 +215,7 @@ export default function Drugs() {
               Add New Drug
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingDrug ? 'Edit Drug' : 'Add New Drug'}</DialogTitle>
             </DialogHeader>
@@ -385,8 +385,9 @@ export default function Drugs() {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                 <TableRow>
                   <TableHead>Drug Name</TableHead>
                   <TableHead>Class</TableHead>
@@ -411,7 +412,7 @@ export default function Drugs() {
                       {drug.side_effect ? drug.side_effect.substring(0, 60) + '...' : '-'}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -454,8 +455,9 @@ export default function Drugs() {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
           )}
           </div>
         </CardContent>

@@ -213,8 +213,8 @@ export default function NormalRanges() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">Normal Ranges Management</h2>
           <p className="text-gray-600">Manage normal laboratory and clinical ranges</p>
@@ -301,8 +301,9 @@ export default function NormalRanges() {
               </Dialog>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                 <TableRow>
                   <TableHead>Parameter</TableHead>
                   <TableHead>Species</TableHead>
@@ -330,7 +331,7 @@ export default function NormalRanges() {
                     </TableCell>
                     <TableCell>{range.unit || '-'}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -373,8 +374,9 @@ export default function NormalRanges() {
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
           )}
           </div>
         </CardContent>
@@ -382,7 +384,7 @@ export default function NormalRanges() {
 
       {/* Add/Edit Form Modal */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingRange ? 'Edit Normal Range' : 'Add New Normal Range'}

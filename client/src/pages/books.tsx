@@ -229,8 +229,8 @@ export default function Books() {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex justify-between items-center">
+    <div className="p-4 sm:p-6">
+      <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-foreground mb-2">Books Management</h2>
           <p className="text-muted-foreground">Manage educational books for the platform</p>
@@ -242,7 +242,7 @@ export default function Books() {
               Add New Book
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Book</DialogTitle>
             </DialogHeader>
@@ -440,7 +440,7 @@ export default function Books() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {books.map((book: Book, index: number) => (
                     <Card key={book.title || index} className="relative">
                       <CardContent className="p-6">

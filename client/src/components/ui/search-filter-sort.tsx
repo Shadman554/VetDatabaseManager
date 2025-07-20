@@ -58,7 +58,7 @@ export default function SearchFilterSort({
   return (
     <div className="space-y-4">
       {/* Search and Controls Row */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -70,15 +70,16 @@ export default function SearchFilterSort({
           />
         </div>
 
-        {/* Sort Control */}
-        <div className="flex items-center gap-2">
-          <Select
-            value={sortBy}
-            onValueChange={(value) => onSortChange(value, sortDirection)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by..." />
-            </SelectTrigger>
+        {/* Sort and Filter Controls */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex gap-2">
+            <Select
+              value={sortBy}
+              onValueChange={(value) => onSortChange(value, sortDirection)}
+            >
+              <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectValue placeholder="Sort by..." />
+              </SelectTrigger>
             <SelectContent>
               {sortOptions.map((option) => (
                 <SelectItem key={option.value} value={option.key}>
@@ -100,6 +101,7 @@ export default function SearchFilterSort({
               <SortDesc className="h-4 w-4" />
             )}
           </Button>
+          </div>
         </div>
 
         {/* Filter Control */}
