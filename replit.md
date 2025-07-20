@@ -5,6 +5,9 @@
 This is a comprehensive admin panel for a veterinary educational platform built with React, TypeScript, Express.js, and Drizzle ORM. The application provides a complete CRUD content management system for educational resources including books, diseases, drugs, dictionary terms, staff information, and more. It features a clean, modern interface built with shadcn/ui components and Tailwind CSS with full create, read, update, and delete capabilities for all content types.
 
 ### Recent Updates (July 2025)
+- **Enhanced Notes System (2025-01-20)**: Added rich text formatting with headings, sub-headings, and bullet points like Flutter app
+- **Text Preview & Editing (2025-01-20)**: Added live preview mode with formatting toolbar and detailed note view dialog
+- **Formatted Content Display (2025-01-20)**: Implemented text parsing to display **headings**, ## sub-headings, and * bullet points
 - **Mobile Responsiveness Complete (2025-01-20)**: Fixed all responsive design issues with proper mobile-first layouts
 - **Table Optimization (2025-01-20)**: Added horizontal scroll to all data tables for better mobile experience
 - **Dialog Improvements (2025-01-20)**: Enhanced modal dialogs with mobile margins and responsive layouts
