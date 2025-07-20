@@ -139,6 +139,21 @@ export const api = {
       const response = await makeRequest(`/api/books/${queryString}`);
       return response.json();
     },
+
+    update: async (id: string | number, data: any) => {
+      const response = await makeRequest(`/api/books/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (id: string | number) => {
+      const response = await makeRequest(`/api/books/${id}/`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
     
     getCategories: async () => {
       const response = await makeRequest('/api/books/categories/list');
@@ -160,6 +175,21 @@ export const api = {
       const response = await makeRequest(`/api/diseases/${queryString}`);
       return response.json();
     },
+
+    update: async (id: string | number, data: any) => {
+      const response = await makeRequest(`/api/diseases/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (id: string | number) => {
+      const response = await makeRequest(`/api/diseases/${id}/`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
   },
 
   drugs: {
@@ -175,6 +205,21 @@ export const api = {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
       const response = await makeRequest(`/api/drugs/${queryString}`);
       return response.json();
+    },
+
+    update: async (id: string | number, data: any) => {
+      const response = await makeRequest(`/api/drugs/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (id: string | number) => {
+      const response = await makeRequest(`/api/drugs/${id}/`, {
+        method: 'DELETE',
+      });
+      return response.ok;
     },
     
     getClasses: async () => {
