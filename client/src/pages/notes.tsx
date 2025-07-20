@@ -223,7 +223,7 @@ export default function Notes() {
           if (trimmedLine.startsWith('##')) {
             const subHeading = trimmedLine.replace(/^##\s*/, '');
             elements.push(
-              <h3 key={`${index}-${lineIndex}`} className="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-4 mb-2">
+              <h3 key={`${index}-${lineIndex}`} className="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-4 mb-2" dir="auto">
                 {subHeading}
               </h3>
             );
@@ -236,7 +236,7 @@ export default function Notes() {
               ? trimmedLine.replace(/^\*\s*/, '• ')
               : trimmedLine;
             elements.push(
-              <div key={`${index}-${lineIndex}`} className="ml-4 mb-1 text-gray-700 dark:text-gray-300">
+              <div key={`${index}-${lineIndex}`} className="ml-4 mb-1 text-gray-700 dark:text-gray-300" dir="auto">
                 {bulletText}
               </div>
             );
@@ -245,7 +245,7 @@ export default function Notes() {
           
           // Regular text
           elements.push(
-            <p key={`${index}-${lineIndex}`} className="mb-2 text-gray-800 dark:text-gray-200">
+            <p key={`${index}-${lineIndex}`} className="mb-2 text-gray-800 dark:text-gray-200" dir="auto">
               {trimmedLine}
             </p>
           );
@@ -253,7 +253,7 @@ export default function Notes() {
       } else {
         // This is a heading (text between **)
         elements.push(
-          <h2 key={`heading-${index}`} className="text-xl font-bold text-blue-700 dark:text-blue-300 mt-6 mb-3">
+          <h2 key={`heading-${index}`} className="text-xl font-bold text-blue-700 dark:text-blue-300 mt-6 mb-3" dir="auto">
             {trimmed}
           </h2>
         );
@@ -270,24 +270,31 @@ export default function Notes() {
     
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = textarea.value;
+    const currentValue = form.getValues('content') || '';
     
-    const newText = text.slice(0, start) + format + text.slice(end);
+    let newText;
+    let cursorPosition;
     
-    // Update form value
-    form.setValue('content', newText);
+    if (format === '****') {
+      // For headings, place cursor between **
+      newText = currentValue.slice(0, start) + '**' + currentValue.slice(start, end) + '**' + currentValue.slice(end);
+      cursorPosition = start + 2;
+    } else {
+      // For other formats, insert at cursor
+      newText = currentValue.slice(0, start) + format + currentValue.slice(end);
+      cursorPosition = start + format.length;
+    }
     
-    // Set cursor position
-    setTimeout(() => {
-      let cursorPosition;
-      if (format === '****') {
-        cursorPosition = start + 2; // Place cursor between **
-      } else {
-        cursorPosition = start + format.length;
+    // Update form value and trigger re-render
+    form.setValue('content', newText, { shouldValidate: true });
+    
+    // Set cursor position after React re-render
+    requestAnimationFrame(() => {
+      if (textarea) {
+        textarea.setSelectionRange(cursorPosition, cursorPosition);
+        textarea.focus();
       }
-      textarea.setSelectionRange(cursorPosition, cursorPosition);
-      textarea.focus();
-    }, 0);
+    });
   };
 
   // Wrap selected text with formatting
@@ -297,18 +304,24 @@ export default function Notes() {
     
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const text = textarea.value;
+    const currentValue = form.getValues('content') || '';
     
     if (start !== end) {
-      const selectedText = text.slice(start, end);
-      const newText = text.slice(0, start) + startFormat + selectedText + endFormat + text.slice(end);
+      const selectedText = currentValue.slice(start, end);
+      const newText = currentValue.slice(0, start) + startFormat + selectedText + endFormat + currentValue.slice(end);
       
-      form.setValue('content', newText);
+      form.setValue('content', newText, { shouldValidate: true });
       
-      setTimeout(() => {
-        textarea.setSelectionRange(start + startFormat.length + selectedText.length + endFormat.length, start + startFormat.length + selectedText.length + endFormat.length);
-        textarea.focus();
-      }, 0);
+      requestAnimationFrame(() => {
+        if (textarea) {
+          const newCursorPos = start + startFormat.length + selectedText.length + endFormat.length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+          textarea.focus();
+        }
+      });
+    } else {
+      // If no selection, just insert the format markers
+      insertFormatting(startFormat + endFormat);
     }
   };
 
@@ -443,12 +456,14 @@ export default function Notes() {
                               placeholder="Enter note content with formatting:&#10;**Main Heading**&#10;## Sub-heading&#10;* Bullet point&#10;Regular text"
                               rows={12}
                               className="font-mono"
+                              dir="auto"
+                              style={{ textAlign: 'left', direction: 'ltr' }}
                               {...field}
                             />
                           </FormControl>
                         </TabsContent>
                         <TabsContent value="preview">
-                          <div className="min-h-[300px] p-4 border rounded-md bg-background">
+                          <div className="min-h-[300px] p-4 border rounded-md bg-background" dir="auto">
                             {field.value ? (
                               <div className="prose max-w-none">
                                 {formatTextContent(field.value)}
@@ -650,7 +665,7 @@ export default function Notes() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-4">
+          <div className="mt-4" dir="auto">
             {selectedNote?.content ? (
               <div className="prose max-w-none">
                 {formatTextContent(selectedNote.content)}
