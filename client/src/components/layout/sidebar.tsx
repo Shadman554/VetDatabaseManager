@@ -48,12 +48,12 @@ const groupedItems = navigationItems.reduce((acc, item) => {
 
 export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   return (
-    <aside className="w-64 bg-white shadow-lg">
+    <aside className="w-64 bg-card shadow-lg border-r border-border">
       <nav className="mt-8">
         {Object.entries(groupedItems).map(([category, items]) => (
           <div key={category} className="mb-8">
             <div className="px-4 mb-4">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {category}
               </h3>
             </div>
@@ -68,8 +68,8 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                     className={cn(
                       "w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors",
                       activeSection === item.id
-                        ? "text-primary bg-blue-50"
-                        : "text-gray-700 hover:bg-gray-50"
+                        ? "text-primary bg-primary/10"
+                        : "text-foreground hover:bg-muted"
                     )}
                   >
                     <Icon className="mr-3 h-4 w-4" />

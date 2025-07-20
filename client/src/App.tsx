@@ -24,6 +24,7 @@ import About from "@/pages/about";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 function MainApp() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -31,7 +32,7 @@ function MainApp() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -77,7 +78,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <TopBar />
       <div className="flex">
         <Sidebar 
@@ -94,12 +95,14 @@ function MainApp() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <MainApp />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vet-admin-theme">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <MainApp />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

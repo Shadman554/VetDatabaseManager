@@ -11,11 +11,12 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { dictionarySchema } from "@shared/schema";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function Dictionary() {
   const { toast } = useToast();
@@ -39,6 +40,9 @@ export default function Dictionary() {
   // Fetch ALL dictionary terms and implement client-side pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const pageSize = 50; // Client-side page size
   
   // Get dictionary terms (working around API pagination limitations)
@@ -57,30 +61,94 @@ export default function Dictionary() {
     staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 
-  // Process the API response for pagination
-  const allTerms = allTermsResponse?.items || [];
+  // Process the API response for filtering, sorting, and pagination
+  const rawTerms = allTermsResponse?.items || [];
   const serverTotal = allTermsResponse?.total || 2444;
   
+  // Filter and sort terms
+  const filteredAndSortedTerms = useMemo(() => {
+    let processed = [...rawTerms];
+
+    // Apply search filter (this is already done at API level, but we include it for completeness)
+    if (searchTerm.trim() && !allTermsResponse) {
+      const search = searchTerm.toLowerCase();
+      processed = processed.filter((term: any) =>
+        term.name?.toLowerCase().includes(search) ||
+        term.kurdish?.toLowerCase().includes(search) ||
+        term.arabic?.toLowerCase().includes(search) ||
+        term.description?.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply favorite filter
+    if (activeFilters.is_favorite === 'true') {
+      processed = processed.filter((term: any) => term.is_favorite === true);
+    } else if (activeFilters.is_favorite === 'false') {
+      processed = processed.filter((term: any) => term.is_favorite === false);
+    }
+
+    // Apply saved filter
+    if (activeFilters.is_saved === 'true') {
+      processed = processed.filter((term: any) => term.is_saved === true);
+    } else if (activeFilters.is_saved === 'false') {
+      processed = processed.filter((term: any) => term.is_saved === false);
+    }
+
+    // Apply sorting
+    processed.sort((a: any, b: any) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'kurdish':
+          aValue = a.kurdish || '';
+          bValue = b.kurdish || '';
+          break;
+        case 'arabic':
+          aValue = a.arabic || '';
+          bValue = b.arabic || '';
+          break;
+        case 'created_at':
+          aValue = a.created_at || '';
+          bValue = b.created_at || '';
+          break;
+        default:
+          aValue = a.name || '';
+          bValue = b.name || '';
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return processed;
+  }, [rawTerms, searchTerm, activeFilters, sortBy, sortDirection, allTermsResponse]);
+  
+  // Implement client-side pagination
   let terms: any[] = [];
   let totalItems = 0;
   let totalPages = 1;
   
   if (searchTerm.trim()) {
-    // When searching, show all search results
-    terms = allTerms;
-    totalItems = allTerms.length;
+    // When searching, paginate filtered results
+    totalItems = filteredAndSortedTerms.length;
     totalPages = Math.ceil(totalItems / pageSize);
     
-    // Apply client-side pagination to search results
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    terms = terms.slice(startIndex, endIndex);
+    terms = filteredAndSortedTerms.slice(startIndex, endIndex);
   } else {
-    // When browsing, show the 100 terms we got from API
-    // but indicate there are more pages available
-    terms = allTerms;
-    totalItems = serverTotal;
-    totalPages = Math.ceil(serverTotal / pageSize);
+    // For all terms, show the filtered data but indicate there's more available
+    totalItems = serverTotal; // Server total (for display)
+    totalPages = Math.ceil(filteredAndSortedTerms.length / pageSize);
+    
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    terms = filteredAndSortedTerms.slice(startIndex, endIndex);
   }
   
   // Create response format to match existing code
@@ -197,8 +265,8 @@ export default function Dictionary() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Dictionary Management</h2>
-          <p className="text-gray-600">Manage veterinary terms with multilingual definitions</p>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Dictionary Management</h2>
+          <p className="text-muted-foreground">Manage veterinary terms with multilingual definitions</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -237,32 +305,49 @@ export default function Dictionary() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Search Bar */}
-              <div className="mb-4">
-                <div className="relative max-w-md">
-                  <Input
-                    placeholder="Search terms (English, Kurdish, Arabic)..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-4"
-                  />
-                  {searchTerm && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                      onClick={() => handleSearch("")}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                {searchTerm && (
-                  <div className="text-sm text-gray-600 mt-2">
-                    {isLoading ? 'Searching...' : `Found ${totalItems} results for "${searchTerm}"`}
-                  </div>
-                )}
-              </div>
+              {/* Search, Filter, and Sort Controls */}
+              <SearchFilterSort
+                searchTerm={searchTerm}
+                onSearchChange={handleSearch}
+                sortOptions={[
+                  { value: "name", label: "English Term", key: "name" },
+                  { value: "kurdish", label: "Kurdish Term", key: "kurdish" },
+                  { value: "arabic", label: "Arabic Term", key: "arabic" },
+                  { value: "created_at", label: "Date Created", key: "created_at" },
+                ]}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+                onSortChange={(key, direction) => {
+                  setSortBy(key);
+                  setSortDirection(direction);
+                }}
+                filterOptions={[
+                  {
+                    key: "is_favorite",
+                    label: "Favorites",
+                    options: [
+                      { value: "true", label: "Favorites Only" },
+                      { value: "false", label: "Non-Favorites" },
+                    ],
+                  },
+                  {
+                    key: "is_saved",
+                    label: "Saved Status",
+                    options: [
+                      { value: "true", label: "Saved Only" },
+                      { value: "false", label: "Unsaved" },
+                    ],
+                  },
+                ]}
+                activeFilters={activeFilters}
+                onFilterChange={(key, value) => {
+                  setActiveFilters(prev => ({ ...prev, [key]: value }));
+                }}
+                onClearFilters={() => setActiveFilters({})}
+                placeholder="Search dictionary terms in English, Kurdish, or Arabic..."
+                totalItems={rawTerms.length}
+                filteredItems={terms.length}
+              />
               
               {/* Info about current data display */}
               <div className="flex justify-between items-center mb-4">
