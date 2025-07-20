@@ -160,8 +160,8 @@ export default function Staff() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Staff Management</h2>
-          <p className="text-gray-600">Manage staff member information and contacts</p>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Staff Management</h2>
+          <p className="text-muted-foreground">Manage staff member information and contacts</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -189,8 +189,8 @@ export default function Staff() {
           ) : staff.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-6xl mb-4">👥</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No staff members yet</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-2">No staff members yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Start by adding your first staff member
               </p>
               <Button onClick={() => setShowForm(true)}>

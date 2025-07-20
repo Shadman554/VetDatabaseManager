@@ -216,8 +216,8 @@ export default function Diseases() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Diseases Management</h2>
-          <p className="text-gray-600">Manage disease information with multilingual support</p>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Diseases Management</h2>
+          <p className="text-muted-foreground">Manage disease information with multilingual support</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />

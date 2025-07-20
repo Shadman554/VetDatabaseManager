@@ -232,8 +232,8 @@ export default function Books() {
     <div className="p-6">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Books Management</h2>
-          <p className="text-gray-600">Manage educational books for the platform</p>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Books Management</h2>
+          <p className="text-muted-foreground">Manage educational books for the platform</p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
@@ -430,8 +430,8 @@ export default function Books() {
               ) : books.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-6xl mb-4">📚</div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No books yet</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <h3 className="text-lg font-medium text-foreground mb-2">No books yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
                     Start by adding your first educational book
                   </p>
                   <Button onClick={() => setShowAddDialog(true)}>
@@ -486,7 +486,7 @@ export default function Books() {
                           </Badge>
                         )}
                         {book.description && (
-                          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                             {book.description}
                           </p>
                         )}
@@ -527,8 +527,8 @@ export default function Books() {
             <CardContent>
               <div className="text-center py-8">
                 <div className="text-6xl mb-4">📊</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Bulk Import Coming Soon</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <h3 className="text-lg font-medium text-foreground mb-2">Bulk Import Coming Soon</h3>
+                <p className="text-sm text-muted-foreground mb-4">
                   Upload CSV or Excel files to import multiple books at once
                 </p>
                 <div className="bg-blue-50 rounded-md p-4 text-left">

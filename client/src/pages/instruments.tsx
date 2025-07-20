@@ -196,8 +196,8 @@ export default function Instruments() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Instruments Management</h2>
-          <p className="text-gray-600">Manage veterinary instruments and equipment</p>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Instruments Management</h2>
+          <p className="text-muted-foreground">Manage veterinary instruments and equipment</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />

@@ -135,8 +135,8 @@ export default function UrineSlides() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Urine Slides Management</h2>
-          <p className="text-gray-600">Manage urine microscopy slide images and findings</p>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">Urine Slides Management</h2>
+          <p className="text-muted-foreground">Manage urine microscopy slide images and findings</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -164,8 +164,8 @@ export default function UrineSlides() {
           ) : slides.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-6xl mb-4">🔬</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No urine slides yet</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-2">No urine slides yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Start by adding your first urine microscopy slide
               </p>
               <Button onClick={() => setShowForm(true)}>

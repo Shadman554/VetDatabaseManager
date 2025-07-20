@@ -294,8 +294,8 @@ export default function Dictionary() {
           ) : terms.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-6xl mb-4">📚</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No dictionary terms yet</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-2">No dictionary terms yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Start by adding your first veterinary term
               </p>
               <Button onClick={() => setShowForm(true)}>
@@ -351,7 +351,7 @@ export default function Dictionary() {
               
               {/* Info about current data display */}
               <div className="flex justify-between items-center mb-4">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   {searchTerm.trim() ? (
                     `Found ${totalItems} results${totalPages > 1 ? ` (page ${currentPage} of ${totalPages})` : ''} for "${searchTerm}"`
                   ) : (
@@ -368,7 +368,7 @@ export default function Dictionary() {
                     >
                       Previous
                     </Button>
-                    <span className="text-xs text-gray-500 px-2 py-1">
+                    <span className="text-xs text-muted-foreground px-2 py-1">
                       Page {currentPage} of {totalPages}
                     </span>
                     <Button 
