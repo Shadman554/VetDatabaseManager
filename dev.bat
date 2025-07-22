@@ -16,4 +16,7 @@ if errorlevel 1 (
 )
 
 echo Starting server with tsx...
+echo Wait for "serving on port 5000" message...
 tsx server/index.ts
+echo.
+echo Server has stopped.

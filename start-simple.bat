@@ -54,6 +54,8 @@ echo.
 
 REM Start with npm run dev
 set NODE_ENV=development
+echo Starting server... (this may take a moment)
+start "" "http://localhost:5000"
 npm run dev
 
 echo.

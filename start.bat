@@ -52,19 +52,20 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-REM Use Windows-compatible development script
-call dev.bat
-if errorlevel 1 (
-    echo.
-    echo ❌ Error starting the application
-    echo Check the error messages above
-    echo.
-    pause
-    exit /b 1
-)
+echo.
+echo Opening browser to http://localhost:5000 in 10 seconds...
+timeout /t 10 /nobreak >nul
+start "" "http://localhost:5000"
 
 echo.
-echo ✅ Application started successfully!
 echo Keep this window open to keep the server running
+echo Wait for "serving on port 5000" message below...
+echo.
+
+REM Use Windows-compatible development script
+call dev.bat
+
+echo.
+echo ✅ Server has stopped
 echo.
 pause
