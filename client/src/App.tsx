@@ -27,10 +27,13 @@ import NotFound from "@/pages/not-found";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 function MainApp() {
   const { isAuthenticated, isLoading } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   if (isLoading) {
     return (
@@ -85,14 +88,28 @@ function MainApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar />
+      <TopBar 
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isMobile={isMobile}
+      />
       <div className="flex">
         <Sidebar 
           activeSection={activeSection} 
-          onSectionChange={setActiveSection} 
+          onSectionChange={(section) => {
+            setActiveSection(section);
+            if (isMobile) {
+              setSidebarOpen(false);
+            }
+          }}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          isMobile={isMobile}
         />
-        <main className="flex-1">
-          {renderSection()}
+        <main className="flex-1 min-w-0">
+          <div className="p-2 sm:p-4 lg:p-6">
+            {renderSection()}
+          </div>
         </main>
       </div>
     </div>

@@ -229,10 +229,10 @@ export default function Books() {
   };
 
   return (
-    <div className="p-4 sm:p-6">
-      <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Books Management</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">Books Management</h2>
           <p className="text-muted-foreground">Manage educational books for the platform</p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -242,13 +242,13 @@ export default function Books() {
               Add New Book
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Book</DialogTitle>
+          <DialogContent className="max-w-2xl mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-lg sm:text-xl">Add New Book</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6 pb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <FormField
                     control={form.control}
                     name="title"
@@ -308,7 +308,7 @@ export default function Books() {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <FormField
                     control={form.control}
                     name="cover_url"
@@ -346,15 +346,20 @@ export default function Books() {
                   />
                 </div>
 
-                <div className="flex justify-end space-x-4">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
                   <Button 
                     type="button" 
                     variant="outline" 
                     onClick={() => setShowAddDialog(false)}
+                    className="w-full sm:w-auto order-2 sm:order-1"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createBookMutation.isPending}>
+                  <Button 
+                    type="submit" 
+                    disabled={createBookMutation.isPending}
+                    className="w-full sm:w-auto order-1 sm:order-2"
+                  >
                     {createBookMutation.isPending ? (
                       <>
                         <LoadingSpinner size="sm" className="mr-2" />

@@ -214,11 +214,11 @@ export default function Diseases() {
 
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Diseases Management</h2>
-          <p className="text-muted-foreground">Manage disease information with multilingual support</p>
+          <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">Diseases Management</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage disease information with multilingual support</p>
         </div>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>

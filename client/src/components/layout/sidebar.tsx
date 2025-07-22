@@ -13,12 +13,18 @@ import {
   Microscope,
   Bell,
   Link,
-  Info
+  Info,
+  X
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface SidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
+  sidebarOpen?: boolean;
+  setSidebarOpen?: (open: boolean) => void;
+  isMobile?: boolean;
 }
 
 const navigationItems = [
@@ -48,41 +54,65 @@ const groupedItems = navigationItems.reduce((acc, item) => {
   return acc;
 }, {} as Record<string, typeof navigationItems>);
 
-export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
-  return (
-    <aside className="w-64 bg-card shadow-lg border-r border-border">
-      <nav className="mt-8">
-        {Object.entries(groupedItems).map(([category, items]) => (
-          <div key={category} className="mb-8">
-            <div className="px-4 mb-4">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {category}
-              </h3>
-            </div>
-            
-            <div className="space-y-1 px-2">
-              {items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onSectionChange(item.id)}
-                    className={cn(
-                      "w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors",
-                      activeSection === item.id
-                        ? "text-primary bg-primary/10"
-                        : "text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <Icon className="mr-3 h-4 w-4" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
+export function Sidebar({ activeSection, onSectionChange, sidebarOpen = false, setSidebarOpen, isMobile }: SidebarProps) {
+  const navigationContent = (
+    <nav className="mt-6 px-2">
+      {Object.entries(groupedItems).map(([category, items]) => (
+        <div key={category} className="mb-6">
+          <div className="px-3 mb-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {category}
+            </h3>
           </div>
-        ))}
-      </nav>
+          
+          <div className="space-y-1">
+            {items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onSectionChange(item.id)}
+                  className={cn(
+                    "w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors",
+                    activeSection === item.id
+                      ? "text-primary bg-primary/10 border-r-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <Icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent side="left" className="w-80 p-0">
+          <SheetHeader className="px-4 py-6 border-b">
+            <SheetTitle className="flex items-center space-x-2">
+              <div className="text-xl">🐾</div>
+              <span>Navigation</span>
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto">
+            {navigationContent}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <aside className="hidden lg:flex w-64 bg-card shadow-lg border-r border-border flex-col">
+      <div className="flex-1 overflow-y-auto">
+        {navigationContent}
+      </div>
     </aside>
   );
 }
