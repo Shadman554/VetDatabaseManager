@@ -54,9 +54,18 @@ export default function Notes() {
         return response;
       } catch (err) {
         console.error('Notes API error:', err);
+        // Re-throw to let react-query handle it
         throw err;
       }
     },
+    retry: (failureCount, error) => {
+      // Don't retry network errors more than once
+      if (error instanceof Error && error.message.includes('Network error')) {
+        return failureCount < 1;
+      }
+      return failureCount < 3;
+    },
+    retryDelay: 1000,
   });
 
   // Handle different API response formats - ensure we always have an array

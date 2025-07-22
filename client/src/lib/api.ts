@@ -63,24 +63,33 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
     headers = { ...headers, ...authService.getAuthHeaders() };
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    
-    // If unauthorized, clear token and retry once
-    if (response.status === 401 && url.includes(API_BASE_URL)) {
-      vetApiAuth.clearToken();
-      // Don't retry here to avoid infinite loops - let the user retry
+    if (!response.ok) {
+      const errorText = await response.text();
+      
+      // If unauthorized, clear token and retry once
+      if (response.status === 401 && url.includes(API_BASE_URL)) {
+        vetApiAuth.clearToken();
+        // Don't retry here to avoid infinite loops - let the user retry
+      }
+      
+      throw new ApiError(response.status, errorText || `HTTP ${response.status}`);
     }
-    
-    throw new ApiError(response.status, errorText || `HTTP ${response.status}`);
-  }
 
-  return response;
+    return response;
+  } catch (error) {
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('Network error for URL:', url, error);
+      throw new ApiError(0, 'Network error - check your connection');
+    }
+    throw error;
+  }
 }
 
 export const api = {
