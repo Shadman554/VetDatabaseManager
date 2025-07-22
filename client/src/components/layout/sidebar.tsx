@@ -14,6 +14,7 @@ import {
   Bell,
   Link,
   Info,
+  Upload,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ interface SidebarProps {
 
 const navigationItems = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, category: "Content Management" },
+  { id: "bulk-upload", label: "Bulk Upload", icon: Upload, category: "Content Management" },
   { id: "books", label: "Books", icon: Book, category: "Content Management" },
   { id: "diseases", label: "Diseases", icon: Worm, category: "Content Management" },
   { id: "drugs", label: "Drugs", icon: Pill, category: "Content Management" },

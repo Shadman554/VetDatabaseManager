@@ -23,6 +23,7 @@ import StoolSlides from "@/pages/stool-slides";
 import Notifications from "@/pages/notifications";
 import AppLinks from "@/pages/app-links";
 import About from "@/pages/about";
+import BulkUpload from "@/pages/bulk-upload";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -81,6 +82,8 @@ function MainApp() {
         return <AppLinks />;
       case "about":
         return <About />;
+      case "bulk-upload":
+        return <BulkUpload />;
       default:
         return <Dashboard />;
     }
