@@ -457,11 +457,8 @@ export default function Notes() {
                               className="font-mono"
                               dir="auto"
                               style={{ textAlign: 'left', direction: 'ltr' }}
-                              ref={(e) => {
-                                textareaRef.current = e;
-                                field.ref(e);
-                              }}
                               {...field}
+                              ref={textareaRef}
                             />
                           </FormControl>
                         </TabsContent>
