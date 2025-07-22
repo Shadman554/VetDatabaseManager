@@ -18,6 +18,8 @@ import TutorialVideos from "@/pages/tutorial-videos";
 import Instruments from "@/pages/instruments";
 import Notes from "@/pages/notes";
 import UrineSlides from "@/pages/urine-slides";
+import OtherSlides from "@/pages/other-slides";
+import StoolSlides from "@/pages/stool-slides";
 import Notifications from "@/pages/notifications";
 import AppLinks from "@/pages/app-links";
 import About from "@/pages/about";
@@ -66,6 +68,10 @@ function MainApp() {
         return <Notes />;
       case "urine-slides":
         return <UrineSlides />;
+      case "other-slides":
+        return <OtherSlides />;
+      case "stool-slides":
+        return <StoolSlides />;
       case "notifications":
         return <Notifications />;
       case "app-links":

@@ -88,6 +88,18 @@ export const noteSchema = z.object({
   image_url: z.string().url().optional().or(z.literal("")),
 });
 
+export const otherSlideSchema = z.object({
+  slide_name: z.string().min(1, "Slide name is required"),
+  description: z.string().optional(),
+  image_url: z.string().url().optional().or(z.literal("")),
+});
+
+export const stoolSlideSchema = z.object({
+  slide_name: z.string().min(1, "Slide name is required"),
+  description: z.string().optional(),
+  image_url: z.string().url().optional().or(z.literal("")),
+});
+
 export const urineSlideSchema = z.object({
   name: z.string().min(1, "Slide name is required"),
   description: z.string().optional(),
@@ -133,6 +145,8 @@ export type TutorialVideo = z.infer<typeof tutorialVideoSchema>;
 export type Instrument = z.infer<typeof instrumentSchema>;
 export type Note = z.infer<typeof noteSchema>;
 export type UrineSlide = z.infer<typeof urineSlideSchema>;
+export type OtherSlide = z.infer<typeof otherSlideSchema>;
+export type StoolSlide = z.infer<typeof stoolSlideSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
 export type AppLink = z.infer<typeof appLinkSchema>;
 export type About = z.infer<typeof aboutSchema>;

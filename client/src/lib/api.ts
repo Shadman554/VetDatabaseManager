@@ -418,6 +418,68 @@ export const api = {
     },
   },
 
+  otherSlides: {
+    create: async (data: any) => {
+      const response = await makeRequest('/api/other-slides/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+    
+    getAll: async (params?: any) => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      const response = await makeRequest(`/api/other-slides/${queryString}`);
+      return response.json();
+    },
+
+    update: async (slide_name: string, data: any) => {
+      const response = await makeRequest(`/api/other-slides/${encodeURIComponent(slide_name)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (slide_name: string) => {
+      const response = await makeRequest(`/api/other-slides/${encodeURIComponent(slide_name)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
+  },
+
+  stoolSlides: {
+    create: async (data: any) => {
+      const response = await makeRequest('/api/stool-slides/', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+    
+    getAll: async (params?: any) => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      const response = await makeRequest(`/api/stool-slides/${queryString}`);
+      return response.json();
+    },
+
+    update: async (slide_name: string, data: any) => {
+      const response = await makeRequest(`/api/stool-slides/${encodeURIComponent(slide_name)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (slide_name: string) => {
+      const response = await makeRequest(`/api/stool-slides/${encodeURIComponent(slide_name)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
+  },
+
   notifications: {
     create: async (data: any) => {
       const response = await makeRequest('/api/notifications/', {
