@@ -52,7 +52,14 @@ export default function Notes() {
 
   let allNotes: any[] = [];
   if (notesResponse) {
-    allNotes = Array.isArray(notesResponse) ? notesResponse : notesResponse.items || [];
+    // Handle external API response format which returns {items: [...], total, page, etc}
+    if (notesResponse.items && Array.isArray(notesResponse.items)) {
+      allNotes = notesResponse.items;
+    } else if (Array.isArray(notesResponse)) {
+      allNotes = notesResponse;
+    } else {
+      allNotes = [];
+    }
   }
 
   // Get unique categories for filtering
