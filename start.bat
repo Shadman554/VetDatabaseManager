@@ -54,3 +54,17 @@ echo.
 
 REM Use Windows-compatible development script
 call dev.bat
+if errorlevel 1 (
+    echo.
+    echo ❌ Error starting the application
+    echo Check the error messages above
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+echo ✅ Application started successfully!
+echo Keep this window open to keep the server running
+echo.
+pause
