@@ -228,7 +228,7 @@ export const api = {
       const response = await makeRequest(`/api/drugs/${encodeURIComponent(name)}`, {
         method: 'DELETE',
       });
-      return response.ok;
+      return response.json();
     },
     
     getClasses: async () => {
