@@ -106,9 +106,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const username = process.env.VET_API_USERNAME;
       const password = process.env.VET_API_PASSWORD;
+      const demoMode = process.env.DEMO_MODE === 'true';
       
       if (!username || !password) {
         return res.status(500).json({ error: 'API credentials not configured' });
+      }
+
+      // Demo mode for testing without real API credentials
+      if (demoMode) {
+        console.log('🚀 Running in DEMO MODE - using mock API token');
+        const mockToken = 'demo_token_' + Math.random().toString(36).substring(2);
+        return res.json({ token: mockToken });
       }
 
       // Authenticate with external API
@@ -120,7 +128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!response.ok) {
         const errorText = await response.text();
-        return res.status(response.status).json({ error: errorText });
+        console.log('API Authentication Error:', response.status, errorText);
+        console.log('💡 TIP: Set DEMO_MODE=true in .env to test without real API credentials');
+        return res.status(response.status).json({ 
+          error: errorText,
+          message: 'Invalid API credentials. Set DEMO_MODE=true in .env for testing, or get real credentials from your API provider'
+        });
       }
 
       const { access_token } = await response.json();
