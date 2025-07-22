@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinary Admin Panel - Launcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .launch-button {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            margin: 10px;
+        }
+        
+        .launch-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .status.checking {
+            background: rgba(255, 193, 7, 0.2);
+        }
+        
+        .status.ready {
+            background: rgba(40, 167, 69, 0.2);
+        }
+        
+        .status.error {
+            background: rgba(220, 53, 69, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏥</div>
+        <h1 class="title">Veterinary Admin Panel</h1>
+        <p class="subtitle">Complete veterinary educational platform management system</p>
+        
+        <div id="status" class="status checking">
+            <div id="status-text">Checking system status...</div>
+        </div>
+        
+        <div id="launch-buttons" style="display: none;">
+            <a href="http://localhost:5000" class="launch-button" target="_blank">
+                🚀 Launch Application
+            </a>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Quick Start Instructions</h3>
+            <ol>
+                <li><strong>Windows:</strong> Double-click <code>start.bat</code></li>
+                <li><strong>Mac/Linux:</strong> Double-click <code>start.sh</code></li>
+                <li><strong>Manual:</strong> Run <code>npm run dev</code> in terminal</li>
+                <li>Configure API credentials in <code>.env</code> file</li>
+                <li>Access the application at <a href="http://localhost:5000" style="color: white;">localhost:5000</a></li>
+            </ol>
+        </div>
+        
+        <div class="instructions">
+            <h3>🔐 Default Login</h3>
+            <p><strong>Username:</strong> admin</p>
+            <p><strong>Password:</strong> admin123</p>
+        </div>
+    </div>
+
+    <script>
+        async function checkServerStatus() {
+            const statusEl = document.getElementById('status');
+            const statusTextEl = document.getElementById('status-text');
+            const launchButtonsEl = document.getElementById('launch-buttons');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/me');
+                if (response.ok || response.status === 401) {
+                    // Server is running (even if not authenticated)
+                    statusEl.className = 'status ready';
+                    statusTextEl.textContent = '✅ Server is running! Ready to launch.';
+                    launchButtonsEl.style.display = 'block';
+                } else {
+                    throw new Error('Server not responding');
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusTextEl.innerHTML = `
+                    ❌ Server is not running<br>
+                    <small>Please start the server using one of the methods below</small>
+                `;
+            }
+        }
+        
+        // Check server status on load
+        checkServerStatus();
+        
+        // Check every 5 seconds
+        setInterval(checkServerStatus, 5000);
+    </script>
+</body>
+</html>
