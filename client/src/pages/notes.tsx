@@ -452,12 +452,15 @@ export default function Notes() {
                         <TabsContent value="edit">
                           <FormControl>
                             <Textarea 
-                              ref={textareaRef}
                               placeholder="Enter note content with formatting:&#10;**Main Heading**&#10;## Sub-heading&#10;* Bullet point&#10;Regular text"
                               rows={12}
                               className="font-mono"
                               dir="auto"
                               style={{ textAlign: 'left', direction: 'ltr' }}
+                              ref={(e) => {
+                                textareaRef.current = e;
+                                field.ref(e);
+                              }}
                               {...field}
                             />
                           </FormControl>

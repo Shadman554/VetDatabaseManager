@@ -361,6 +361,21 @@ export const api = {
       const response = await makeRequest(`/api/notes/${queryString}`);
       return response.json();
     },
+
+    update: async (name: string, data: any) => {
+      const response = await makeRequest(`/api/notes/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+
+    delete: async (name: string) => {
+      const response = await makeRequest(`/api/notes/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    },
   },
 
   urineSlides: {
