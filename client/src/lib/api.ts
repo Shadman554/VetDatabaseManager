@@ -64,13 +64,19 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
   }
 
   try {
+    console.log('Making request to:', url, 'with method:', options.method || 'GET');
+    console.log('Request headers:', headers);
+    
     const response = await fetch(url, {
       ...options,
       headers,
     });
 
+    console.log('Response status:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Request failed:', response.status, errorText);
       
       // If unauthorized, clear token and retry once
       if (response.status === 401 && url.includes(API_BASE_URL)) {
@@ -88,6 +94,7 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
       console.error('Network error for URL:', url, error);
       throw new ApiError(0, 'Network error - check your connection');
     }
+    console.error('Request error:', error);
     throw error;
   }
 }
@@ -225,10 +232,21 @@ export const api = {
     },
 
     delete: async (name: string) => {
-      const response = await makeRequest(`/api/drugs/${encodeURIComponent(name)}`, {
-        method: 'DELETE',
-      });
-      return response.json();
+      console.log('Attempting to delete drug:', name);
+      console.log('Delete URL:', `/api/drugs/${encodeURIComponent(name)}`);
+      
+      try {
+        const response = await makeRequest(`/api/drugs/${encodeURIComponent(name)}`, {
+          method: 'DELETE',
+        });
+        console.log('Delete response status:', response.status);
+        const result = await response.json();
+        console.log('Delete response:', result);
+        return result;
+      } catch (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
     },
     
     getClasses: async () => {
