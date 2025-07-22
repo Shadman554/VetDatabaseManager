@@ -17,7 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { bookSchema, type Book } from "@shared/schema";
 import { api } from "@/lib/api";
-import { Edit2, Trash2, ExternalLink, Plus } from "lucide-react";
+import { Edit2, Trash2, ExternalLink, Plus, Upload, Download } from "lucide-react";
+import Papa from 'papaparse';
 import SearchFilterSort from "@/components/ui/search-filter-sort";
 
 export default function Books() {
@@ -32,6 +33,11 @@ export default function Books() {
   const [sortBy, setSortBy] = useState("title");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  
+  // Bulk import state
+  const [bulkImportFile, setBulkImportFile] = useState<File | null>(null);
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false);
+  const [bulkResults, setBulkResults] = useState<{success: number, errors: string[], data?: any[]}>({success: 0, errors: []});
   
   const form = useForm({
     resolver: zodResolver(bookSchema),
@@ -226,6 +232,177 @@ export default function Books() {
 
   const handleDelete = (title: string) => {
     deleteBookMutation.mutate(title);
+  };
+
+  // Bulk import handlers
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast({
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const allowedTypes = ['.csv', '.xlsx', '.xls'];
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      
+      if (!allowedTypes.includes(fileExtension)) {
+        toast({
+          title: "Error",
+          description: "Only CSV, XLSX, and XLS files are supported",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setBulkImportFile(file);
+      setBulkResults({success: 0, errors: []});
+    }
+  };
+
+  const processBulkImport = async () => {
+    if (!bulkImportFile) return;
+    
+    setIsProcessingBulk(true);
+    setBulkResults({success: 0, errors: []});
+    
+    try {
+      const text = await bulkImportFile.text();
+      
+      Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results: any) => {
+          const errors: string[] = [];
+          let successCount = 0;
+          
+          // Validate required columns
+          const requiredColumns = ['title', 'description', 'category'];
+          const headers = Object.keys(results.data[0] || {});
+          const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+          
+          if (missingColumns.length > 0) {
+            toast({
+              title: "Invalid CSV Format",
+              description: `Missing required columns: ${missingColumns.join(', ')}`,
+              variant: "destructive",
+            });
+            setIsProcessingBulk(false);
+            return;
+          }
+          
+          // Process each row
+          for (let i = 0; i < results.data.length; i++) {
+            const row = results.data[i];
+            
+            try {
+              // Validate required fields
+              if (!row.title?.trim()) {
+                errors.push(`Row ${i + 1}: Title is required`);
+                continue;
+              }
+              
+              if (!row.description?.trim()) {
+                errors.push(`Row ${i + 1}: Description is required`);
+                continue;
+              }
+              
+              if (!row.category?.trim()) {
+                errors.push(`Row ${i + 1}: Category is required`);
+                continue;
+              }
+              
+              // Create book data
+              const bookData = {
+                title: row.title.trim(),
+                description: row.description.trim(),
+                category: row.category.trim(),
+                cover_url: row.cover_url?.trim() || "",
+                download_url: row.download_url?.trim() || "",
+              };
+              
+              // Validate with schema
+              const validatedData = bookSchema.parse(bookData);
+              
+              // Create the book
+              await api.books.create(validatedData);
+              successCount++;
+              
+            } catch (error: any) {
+              errors.push(`Row ${i + 1}: ${error.message || 'Failed to create book'}`);
+            }
+          }
+          
+          setBulkResults({success: successCount, errors, data: results.data});
+          
+          if (successCount > 0) {
+            queryClient.invalidateQueries({ queryKey: ['books'] });
+            toast({
+              title: "Bulk Import Complete",
+              description: `Successfully imported ${successCount} books${errors.length > 0 ? ` with ${errors.length} errors` : ''}`,
+            });
+          } else if (errors.length > 0) {
+            toast({
+              title: "Import Failed",
+              description: `No books were imported. Check the error details below.`,
+              variant: "destructive",
+            });
+          }
+        },
+        error: (error: any) => {
+          toast({
+            title: "File Processing Error",
+            description: `Failed to parse file: ${error.message}`,
+            variant: "destructive",
+          });
+        }
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to process file: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingBulk(false);
+    }
+  };
+
+  const downloadSampleCSV = () => {
+    const sampleData = [
+      {
+        title: "Veterinary Anatomy Textbook",
+        description: "Comprehensive guide to animal anatomy for veterinary students",
+        category: "anatomy",
+        cover_url: "https://example.com/cover1.jpg",
+        download_url: "https://example.com/book1.pdf"
+      },
+      {
+        title: "Small Animal Surgery",
+        description: "Advanced surgical techniques for small animals",
+        category: "surgery",
+        cover_url: "https://example.com/cover2.jpg",
+        download_url: "https://example.com/book2.pdf"
+      }
+    ];
+    
+    const csv = Papa.unparse(sampleData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'books_sample.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
@@ -530,22 +707,145 @@ export default function Books() {
               <CardTitle>Bulk Import Books</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">📊</div>
-                <h3 className="text-lg font-medium text-foreground mb-2">Bulk Import Coming Soon</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Upload CSV or Excel files to import multiple books at once
-                </p>
-                <div className="bg-blue-50 rounded-md p-4 text-left">
+              <div className="space-y-6">
+                {/* File Upload Section */}
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium">Upload CSV File</h3>
+                      <p className="text-sm text-muted-foreground">Import multiple books from a CSV file</p>
+                    </div>
+                    <Button variant="outline" onClick={downloadSampleCSV}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Sample CSV
+                    </Button>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="mt-4">
+                        <label htmlFor="bulk-file-upload" className="cursor-pointer">
+                          <span className="mt-2 block text-sm font-medium text-gray-900">
+                            Choose a CSV file or drag and drop
+                          </span>
+                          <span className="mt-1 block text-xs text-gray-500">
+                            CSV, XLSX, XLS up to 10MB
+                          </span>
+                        </label>
+                        <input
+                          id="bulk-file-upload"
+                          name="bulk-file-upload"
+                          type="file"
+                          className="sr-only"
+                          accept=".csv,.xlsx,.xls"
+                          onChange={handleFileSelect}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {bulkImportFile && (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="text-blue-400 mr-3">📄</div>
+                          <div>
+                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                              {bulkImportFile.name}
+                            </p>
+                            <p className="text-xs text-blue-700 dark:text-blue-300">
+                              {(bulkImportFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={processBulkImport}
+                            disabled={isProcessingBulk}
+                          >
+                            {isProcessingBulk ? (
+                              <>
+                                <LoadingSpinner size="sm" className="mr-2" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4 mr-2" />
+                                Import Books
+                              </>
+                            )}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setBulkImportFile(null)}
+                            disabled={isProcessingBulk}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Results Section */}
+                {(bulkResults.success > 0 || bulkResults.errors.length > 0) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Import Results</h3>
+                    
+                    {bulkResults.success > 0 && (
+                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-4">
+                        <div className="flex">
+                          <div className="text-green-400 mr-3">✅</div>
+                          <div>
+                            <h4 className="text-sm font-medium text-green-800 dark:text-green-200">
+                              Successfully Imported
+                            </h4>
+                            <p className="text-sm text-green-700 dark:text-green-300">
+                              {bulkResults.success} books were imported successfully
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {bulkResults.errors.length > 0 && (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
+                        <div className="flex">
+                          <div className="text-red-400 mr-3">❌</div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-red-800 dark:text-red-200">
+                              Errors ({bulkResults.errors.length})
+                            </h4>
+                            <div className="mt-2 max-h-40 overflow-y-auto">
+                              <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+                                {bulkResults.errors.map((error, index) => (
+                                  <li key={index}>• {error}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Format Guidelines */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-4">
                   <div className="flex">
                     <div className="text-blue-400 mr-3">ℹ️</div>
-                    <div className="text-sm text-blue-700">
-                      <p className="font-medium mb-1">CSV Format Guidelines:</p>
+                    <div className="text-sm text-blue-700 dark:text-blue-300">
+                      <p className="font-medium mb-2">CSV Format Guidelines:</p>
                       <ul className="list-disc list-inside space-y-1">
-                        <li>Required columns: title, description, category</li>
-                        <li>Optional columns: cover_url, download_url</li>
-                        <li>Maximum file size: 10MB</li>
-                        <li>Supported formats: CSV, XLSX, XLS</li>
+                        <li><strong>Required columns:</strong> title, description, category</li>
+                        <li><strong>Optional columns:</strong> cover_url, download_url</li>
+                        <li><strong>Categories:</strong> surgery, medicine, anatomy, pharmacology, pathology, radiology</li>
+                        <li><strong>Maximum file size:</strong> 10MB</li>
+                        <li><strong>Supported formats:</strong> CSV, XLSX, XLS</li>
                       </ul>
                     </div>
                   </div>
