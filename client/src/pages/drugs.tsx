@@ -192,6 +192,14 @@ export default function Drugs() {
   };
 
   const handleDelete = (name: string) => {
+    if (!name || name.trim() === '') {
+      toast({
+        title: "Error",
+        description: "Cannot delete drug with empty name",
+        variant: "destructive",
+      });
+      return;
+    }
     deleteDrugMutation.mutate(name);
   };
 
@@ -422,35 +430,48 @@ export default function Drugs() {
                           <Edit className="h-3 w-3" />
                           Edit
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-1 text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Drug</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{drug.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(drug.name)}
-                                className="bg-red-600 hover:bg-red-700"
+                        {drug.name && drug.name.trim() !== '' ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1 text-red-600 hover:bg-red-50"
                               >
+                                <Trash2 className="h-3 w-3" />
                                 Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Drug</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{drug.name}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(drug.name)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled
+                            className="flex items-center gap-1 text-gray-400"
+                            title="Cannot delete drug with empty name"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
