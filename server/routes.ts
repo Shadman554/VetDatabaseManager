@@ -129,10 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!response.ok) {
         const errorText = await response.text();
         console.log('API Authentication Error:', response.status, errorText);
-        console.log('💡 TIP: Set DEMO_MODE=true in .env to test without real API credentials');
         return res.status(response.status).json({ 
           error: errorText,
-          message: 'Invalid API credentials. Set DEMO_MODE=true in .env for testing, or get real credentials from your API provider'
+          message: 'Invalid API credentials'
         });
       }
 
