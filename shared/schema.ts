@@ -84,8 +84,8 @@ export const instrumentSchema = z.object({
 
 export const noteSchema = z.object({
   name: z.string().min(1, "Note name is required"),
-  content: z.string().optional(),
-  category: z.string().optional(),
+  description: z.string().optional(),
+  image_url: z.string().url().optional().or(z.literal("")),
 });
 
 export const urineSlideSchema = z.object({

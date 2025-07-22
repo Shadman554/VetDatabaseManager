@@ -39,8 +39,8 @@ export default function Notes() {
     resolver: zodResolver(noteSchema),
     defaultValues: {
       name: "",
-      content: "",
-      category: "",
+      description: "",
+      image_url: "",
     },
   });
 
@@ -87,12 +87,6 @@ export default function Notes() {
     }
   }
 
-  // Get unique categories for filtering
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(allNotes.map((note: any) => note.category).filter(Boolean))) as string[];
-    return cats.sort();
-  }, [allNotes]);
-
   // Filter, search, and sort notes
   const filteredAndSortedNotes = useMemo(() => {
     let filtered = [...allNotes];
@@ -102,14 +96,8 @@ export default function Notes() {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter((note: any) =>
         note.name?.toLowerCase().includes(search) ||
-        note.content?.toLowerCase().includes(search) ||
-        note.category?.toLowerCase().includes(search)
+        note.description?.toLowerCase().includes(search)
       );
-    }
-
-    // Apply category filter
-    if (activeFilters.category) {
-      filtered = filtered.filter((note: any) => note.category === activeFilters.category);
     }
 
     // Apply sorting
@@ -211,8 +199,8 @@ export default function Notes() {
     setEditingNote(note);
     form.reset({
       name: note.name || "",
-      content: note.content || "",
-      category: note.category || "",
+      description: note.description || "",
+      image_url: note.image_url || "",
     });
     setShowForm(true);
   };
@@ -302,7 +290,7 @@ export default function Notes() {
     
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const currentValue = form.getValues('content') || '';
+    const currentValue = form.getValues('description') || '';
     
     let newText;
     let cursorPosition;
@@ -318,7 +306,7 @@ export default function Notes() {
     }
     
     // Update form value and trigger re-render
-    form.setValue('content', newText, { shouldValidate: true });
+    form.setValue('description', newText, { shouldValidate: true });
     
     // Set cursor position after React re-render
     requestAnimationFrame(() => {
@@ -336,13 +324,13 @@ export default function Notes() {
     
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const currentValue = form.getValues('content') || '';
+    const currentValue = form.getValues('description') || '';
     
     if (start !== end) {
       const selectedText = currentValue.slice(start, end);
       const newText = currentValue.slice(0, start) + startFormat + selectedText + endFormat + currentValue.slice(end);
       
-      form.setValue('content', newText, { shouldValidate: true });
+      form.setValue('description', newText, { shouldValidate: true });
       
       requestAnimationFrame(() => {
         if (textarea) {
@@ -402,12 +390,12 @@ export default function Notes() {
                   
                   <FormField
                     control={form.control}
-                    name="category"
+                    name="image_url"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel>Image URL</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Anatomy, Surgery, Diagnosis" {...field} />
+                          <Input placeholder="https://example.com/image.jpg (optional)" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -417,11 +405,11 @@ export default function Notes() {
                 
                 <FormField
                   control={form.control}
-                  name="content"
+                  name="description"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center justify-between">
-                        <span>Content *</span>
+                        <span>Description</span>
                         <div className="flex gap-2">
                           <Button
                             type="button"
@@ -545,7 +533,7 @@ export default function Notes() {
             onSearchChange={setSearchTerm}
             sortOptions={[
               { value: "name", label: "Title", key: "name" },
-              { value: "category", label: "Category", key: "category" },
+              { value: "description", label: "Description", key: "description" },
             ]}
             sortBy={sortBy}
             sortDirection={sortDirection}
@@ -553,19 +541,13 @@ export default function Notes() {
               setSortBy(key);
               setSortDirection(direction);
             }}
-            filterOptions={[
-              {
-                key: "category",
-                label: "Category",
-                options: categories.map((cat: string) => ({ value: cat, label: cat })),
-              },
-            ]}
+            filterOptions={[]}
             activeFilters={activeFilters}
             onFilterChange={(key, value) => {
               setActiveFilters(prev => ({ ...prev, [key]: value }));
             }}
             onClearFilters={() => setActiveFilters({})}
-            placeholder="Search notes by title, content, or category..."
+            placeholder="Search notes by title or description..."
             totalItems={allNotes.length}
             filteredItems={notes.length}
           />
@@ -600,8 +582,8 @@ export default function Notes() {
                 <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Content</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Image</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -609,13 +591,12 @@ export default function Notes() {
                 {notes.map((note: any, index: number) => (
                   <TableRow key={note.name || note.id || index}>
                     <TableCell className="font-medium">{note.name}</TableCell>
-                    <TableCell>{note.category || '-'}</TableCell>
                     <TableCell className="max-w-xs">
                       <div className="space-y-1">
                         <div className="truncate text-sm">
-                          {note.content ? note.content.substring(0, 80) + '...' : '-'}
+                          {note.description ? note.description.substring(0, 80) + '...' : '-'}
                         </div>
-                        {note.content && note.content.length > 80 && (
+                        {note.description && note.description.length > 80 && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -623,10 +604,17 @@ export default function Notes() {
                             className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
                           >
                             <FileText className="h-3 w-3 mr-1" />
-                            View Full Content
+                            View Full Description
                           </Button>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {note.image_url ? (
+                        <a href={note.image_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                          View Image
+                        </a>
+                      ) : '-'}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -689,21 +677,23 @@ export default function Notes() {
               {selectedNote?.name}
             </DialogTitle>
             <DialogDescription>
-              {selectedNote?.category && (
-                <Badge variant="secondary" className="mt-2">
-                  {selectedNote.category}
-                </Badge>
-              )}
+              Note details and content
             </DialogDescription>
           </DialogHeader>
           
           <div className="mt-4" dir="auto">
-            {selectedNote?.content ? (
+            {selectedNote?.description ? (
               <div className="prose max-w-none">
-                {formatTextContent(selectedNote.content)}
+                {formatTextContent(selectedNote.description)}
               </div>
             ) : (
-              <p className="text-muted-foreground">No content available.</p>
+              <p className="text-muted-foreground">No description available.</p>
+            )}
+            {selectedNote?.image_url && (
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">Image:</h4>
+                <img src={selectedNote.image_url} alt={selectedNote.name} className="max-w-full h-auto rounded border" />
+              </div>
             )}
           </div>
           
