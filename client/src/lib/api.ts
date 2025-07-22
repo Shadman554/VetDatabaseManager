@@ -349,64 +349,31 @@ export const api = {
 
   notes: {
     create: async (data: any) => {
-      const response = await fetch('/api/notes/', {
+      const response = await makeRequest('/api/notes/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authService.getAuthHeaders(),
-        },
         body: JSON.stringify(data),
       });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new ApiError(response.status, errorText);
-      }
       return response.json();
     },
     
     getAll: async (params?: any) => {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-      const response = await fetch(`/api/notes/${queryString}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...authService.getAuthHeaders(),
-        },
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new ApiError(response.status, errorText);
-      }
+      const response = await makeRequest(`/api/notes/${queryString}`);
       return response.json();
     },
 
     update: async (name: string, data: any) => {
-      const response = await fetch(`/api/notes/${encodeURIComponent(name)}`, {
+      const response = await makeRequest(`/api/notes/${encodeURIComponent(name)}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authService.getAuthHeaders(),
-        },
         body: JSON.stringify(data),
       });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new ApiError(response.status, errorText);
-      }
       return response.json();
     },
 
     delete: async (name: string) => {
-      const response = await fetch(`/api/notes/${encodeURIComponent(name)}`, {
+      const response = await makeRequest(`/api/notes/${encodeURIComponent(name)}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authService.getAuthHeaders(),
-        },
       });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new ApiError(response.status, errorText);
-      }
       return response.ok;
     },
   },

@@ -131,70 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Local notes management (since external API doesn't have notes endpoints)
-  app.get('/api/notes/', async (req, res) => {
-    try {
-      const notes = await storage.getAllNotes();
-      res.json(notes);
-    } catch (error) {
-      console.error('Get notes error:', error);
-      res.status(500).json({ error: 'Failed to fetch notes' });
-    }
-  });
 
-  app.post('/api/notes/', async (req, res) => {
-    try {
-      const noteData = req.body;
-      const note = await storage.createNote(noteData);
-      res.json(note);
-    } catch (error) {
-      console.error('Create note error:', error);
-      res.status(500).json({ error: 'Failed to create note' });
-    }
-  });
-
-  app.get('/api/notes/:name', async (req, res) => {
-    try {
-      const { name } = req.params;
-      const note = await storage.getNoteByName(decodeURIComponent(name));
-      if (!note) {
-        return res.status(404).json({ error: 'Note not found' });
-      }
-      res.json(note);
-    } catch (error) {
-      console.error('Get note error:', error);
-      res.status(500).json({ error: 'Failed to fetch note' });
-    }
-  });
-
-  app.put('/api/notes/:name', async (req, res) => {
-    try {
-      const { name } = req.params;
-      const noteData = req.body;
-      const note = await storage.updateNote(decodeURIComponent(name), noteData);
-      if (!note) {
-        return res.status(404).json({ error: 'Note not found' });
-      }
-      res.json(note);
-    } catch (error) {
-      console.error('Update note error:', error);
-      res.status(500).json({ error: 'Failed to update note' });
-    }
-  });
-
-  app.delete('/api/notes/:name', async (req, res) => {
-    try {
-      const { name } = req.params;
-      const success = await storage.deleteNote(decodeURIComponent(name));
-      if (!success) {
-        return res.status(404).json({ error: 'Note not found' });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Delete note error:', error);
-      res.status(500).json({ error: 'Failed to delete note' });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
