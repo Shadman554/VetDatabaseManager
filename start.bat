@@ -52,4 +52,5 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-call npm run dev
+REM Use Windows-compatible development script
+call dev.bat

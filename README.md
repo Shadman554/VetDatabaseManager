@@ -29,6 +29,14 @@ A comprehensive admin panel for managing veterinary educational resources includ
 
 3. **Start Application**
    ```bash
+   # Windows (choose one):
+   start.bat           # Batch script
+   start.ps1          # PowerShell script (recommended)
+   
+   # Mac/Linux:
+   ./start.sh
+   
+   # Manual:
    npm run dev
    ```
 

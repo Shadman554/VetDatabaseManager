@@ -3,7 +3,13 @@
 ## Quick Start for Your PC
 
 ### Method 1: Windows (One-Click)
+**Option A - Batch Script:**
 1. Double-click `start.bat`
+2. Follow the prompts to configure API credentials
+3. Application opens at `http://localhost:5000`
+
+**Option B - PowerShell (Recommended):**
+1. Right-click `start.ps1` → "Run with PowerShell"
 2. Follow the prompts to configure API credentials
 3. Application opens at `http://localhost:5000`
 
