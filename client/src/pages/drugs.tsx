@@ -14,7 +14,7 @@ import { api } from "@/lib/api";
 import { useState, useMemo } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import SearchFilterSort from "@/components/ui/search-filter-sort";
@@ -180,6 +180,14 @@ export default function Drugs() {
   };
 
   const handleEdit = (drug: any) => {
+    if (!drug.name || drug.name.trim() === '') {
+      toast({
+        title: "Error",
+        description: "Cannot edit drug with empty name",
+        variant: "destructive",
+      });
+      return;
+    }
     setEditingDrug(drug);
     form.reset({
       name: drug.name || "",
@@ -226,6 +234,9 @@ export default function Drugs() {
           <DialogContent className="max-w-2xl mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingDrug ? 'Edit Drug' : 'Add New Drug'}</DialogTitle>
+              <DialogDescription>
+                {editingDrug ? 'Update the drug information below.' : 'Fill in the details to add a new drug to the database.'}
+              </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -421,15 +432,28 @@ export default function Drugs() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(drug)}
-                          className="flex items-center gap-1"
-                        >
-                          <Edit className="h-3 w-3" />
-                          Edit
-                        </Button>
+                        {drug.name && drug.name.trim() !== '' ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(drug)}
+                            className="flex items-center gap-1"
+                          >
+                            <Edit className="h-3 w-3" />
+                            Edit
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled
+                            className="flex items-center gap-1 text-gray-400"
+                            title="Cannot edit drug with empty name"
+                          >
+                            <Edit className="h-3 w-3" />
+                            Edit
+                          </Button>
+                        )}
                         {drug.name && drug.name.trim() !== '' ? (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
