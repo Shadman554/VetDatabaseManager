@@ -47,17 +47,33 @@ export default function Notes() {
   // Fetch notes
   const { data: notesResponse, isLoading, error } = useQuery({
     queryKey: ['notes'],
-    queryFn: api.notes.getAll,
+    queryFn: async () => {
+      try {
+        const response = await api.notes.getAll();
+        console.log('Notes API response:', response);
+        return response;
+      } catch (err) {
+        console.error('Notes API error:', err);
+        throw err;
+      }
+    },
   });
 
-  let allNotes: any[] = [];
+  // Handle different API response formats - ensure we always have an array
+  let allNotes = [];
   if (notesResponse) {
-    // Handle external API response format which returns {items: [...], total, page, etc}
-    if (notesResponse.items && Array.isArray(notesResponse.items)) {
-      allNotes = notesResponse.items;
-    } else if (Array.isArray(notesResponse)) {
+    if (Array.isArray(notesResponse)) {
       allNotes = notesResponse;
+    } else if (notesResponse.items && Array.isArray(notesResponse.items)) {
+      allNotes = notesResponse.items;
+    } else if (notesResponse.notes && Array.isArray(notesResponse.notes)) {
+      allNotes = notesResponse.notes;
+    } else if (notesResponse.data && Array.isArray(notesResponse.data)) {
+      allNotes = notesResponse.data;
+    } else if (notesResponse.results && Array.isArray(notesResponse.results)) {
+      allNotes = notesResponse.results;
     } else {
+      console.warn('Unexpected notes response format:', notesResponse);
       allNotes = [];
     }
   }
