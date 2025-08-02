@@ -31,6 +31,7 @@ export default function Notifications() {
       title: "",
       content: "",
       type: "general" as const,
+      image_url: "",
       is_read: false,
     },
   });
@@ -208,7 +209,8 @@ export default function Notifications() {
                     )}
                   />
 
-                  <FormField
+                  {/* Type field disabled - not supported by external API database */}
+                  {/* <FormField
                     control={form.control}
                     name="type"
                     render={({ field }) => (
@@ -229,6 +231,23 @@ export default function Notifications() {
                             <SelectItem value="reminder">⏰ Reminder (بیرخستنەوە)</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  /> */}
+
+                  <FormField
+                    control={form.control}
+                    name="image_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL (بەستەری وێنە) - Optional</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://example.com/image.jpg"
+                            {...field}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -304,7 +323,7 @@ export default function Notifications() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Testing your notifications:</strong> After sending notifications, check the Flutter app. Look for "Successfully loaded X notifications" in console logs. The notification icon should show unread count badge.
+          <strong>Note:</strong> The external API database currently has limited support. Image URLs and notification types are not fully supported due to database schema limitations. Basic title and content work perfectly for mobile notifications.
         </AlertDescription>
       </Alert>
 
@@ -334,6 +353,7 @@ export default function Notifications() {
                     <TableHead>Type</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Content</TableHead>
+                    <TableHead>Image</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -350,11 +370,25 @@ export default function Notifications() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="default">
-                          📢 General
+                          {getTypeIcon(notification.type || 'general')} {notification.type || 'General'}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">{notification.title}</TableCell>
                       <TableCell className="max-w-md truncate">{notification.body}</TableCell>
+                      <TableCell>
+                        {notification.image_url ? (
+                          <img 
+                            src={notification.image_url} 
+                            alt="Notification" 
+                            className="w-8 h-8 rounded object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {notification.timestamp ? format(new Date(notification.timestamp), 'MMM dd, yyyy HH:mm') : 'N/A'}
                       </TableCell>

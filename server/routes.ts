@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/notifications/", async (req, res) => {
     try {
-      const { title, content, type } = req.body;
+      const { title, content, type, image_url } = req.body;
 
       if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
@@ -216,7 +216,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify({ 
           title, 
           body: content, // API expects 'body' field
-          type: type || 'general' 
+          image_url: image_url || null
+          // Note: type field not supported by external API database
         }),
       });
 
