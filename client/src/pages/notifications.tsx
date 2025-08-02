@@ -323,7 +323,7 @@ export default function Notifications() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Note:</strong> The external API database currently has limited support. Image URLs and notification types are not fully supported due to database schema limitations. Basic title and content work perfectly for mobile notifications.
+          <strong>API Status:</strong> The external notification API is currently experiencing database schema issues (missing "type" column). This affects reading and creating new notifications. Previously created notifications are still stored and will reappear when the API is fixed.
         </AlertDescription>
       </Alert>
 
