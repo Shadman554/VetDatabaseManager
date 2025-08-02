@@ -420,15 +420,24 @@ export default function Notifications() {
                       <TableCell className="font-medium">{notification.title}</TableCell>
                       <TableCell className="max-w-md truncate">{notification.body}</TableCell>
                       <TableCell>
-                        {notification.image_url ? (
-                          <img 
-                            src={notification.image_url} 
-                            alt="Notification" 
-                            className="w-8 h-8 rounded object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
+                        {notification.image_url && notification.image_url.trim() !== '' ? (
+                          <div className="flex items-center gap-2">
+                            <img 
+                              src={notification.image_url} 
+                              alt="Notification" 
+                              className="w-12 h-8 rounded object-cover border"
+                              onError={(e) => {
+                                console.log('Failed to load image:', notification.image_url);
+                                e.currentTarget.style.display = 'none';
+                                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (nextElement) nextElement.style.display = 'block';
+                              }}
+                              onLoad={(e) => {
+                                console.log('Successfully loaded image:', notification.image_url);
+                              }}
+                            />
+                            <span className="text-red-500 text-xs hidden">❌ Failed</span>
+                          </div>
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
