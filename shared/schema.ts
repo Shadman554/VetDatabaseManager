@@ -113,6 +113,8 @@ export const notificationSchema = z.object({
   body: z.string().min(1, "Content is required"),
   image_url: z.string().url().optional().or(z.literal("")),
   timestamp: z.string().optional(),
+  // Client-side category (not sent to API)
+  category: z.enum(["general", "drug", "diseases", "books", "terminology", "slides", "tests", "notes", "instruments", "normal_ranges"]).default("general"),
 });
 
 export const insertNotificationSchema = notificationSchema.omit({ id: true, timestamp: true });

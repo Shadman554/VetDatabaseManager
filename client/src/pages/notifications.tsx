@@ -31,6 +31,7 @@ export default function Notifications() {
       title: "",
       body: "",
       image_url: "",
+      category: "general" as const,
     },
   });
 
@@ -57,6 +58,7 @@ export default function Notifications() {
         title: data.title,
         content: data.body, // Convert body back to content for server
         image_url: data.image_url
+        // Note: category is client-side only, not sent to API
       }),
     }).then(res => res.json()),
     onSuccess: () => {
@@ -130,6 +132,43 @@ export default function Notifications() {
 
   const unreadCount = Array.isArray(allNotifications) ? allNotifications.length : 0;
 
+  // Helper functions for categories
+  const getCategoryIcon = (category?: string) => {
+    switch (category) {
+      case 'drug': return '💊';
+      case 'diseases': return '🦠';
+      case 'books': return '📚';
+      case 'terminology': return '📖';
+      case 'slides': return '🔬';
+      case 'tests': return '🧪';
+      case 'notes': return '📝';
+      case 'instruments': return '⚕️';
+      case 'normal_ranges': return '📊';
+      default: return '📢';
+    }
+  };
+
+  const getCategoryName = (category?: string) => {
+    switch (category) {
+      case 'drug': return 'Drugs';
+      case 'diseases': return 'Diseases';
+      case 'books': return 'Books';
+      case 'terminology': return 'Terminology';
+      case 'slides': return 'Slides';
+      case 'tests': return 'Tests';
+      case 'notes': return 'Notes';
+      case 'instruments': return 'Instruments';
+      case 'normal_ranges': return 'Normal Ranges';
+      default: return 'General';
+    }
+  };
+
+  // Add category to notifications (client-side only for display)
+  const enhancedNotifications = notifications.map((notification: any) => ({
+    ...notification,
+    category: notification.category || 'general' // Default to general for existing notifications
+  }));
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -191,32 +230,33 @@ export default function Notifications() {
                     )}
                   />
 
-                  {/* Type field disabled - not supported by external API database */}
-                  {/* <FormField
+                  <FormField
                     control={form.control}
-                    name="type"
+                    name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Type (جۆر)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select notification type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="general">📢 General (گشتی)</SelectItem>
-                            <SelectItem value="drug">💊 Drug (دەرمان)</SelectItem>
-                            <SelectItem value="disease">🦠 Disease (نەخۆشی)</SelectItem>
-                            <SelectItem value="quiz">📝 Quiz (تاقیکردنەوە)</SelectItem>
-                            <SelectItem value="update">🔄 Update (نوێکردنەوە)</SelectItem>
-                            <SelectItem value="reminder">⏰ Reminder (بیرخستنەوە)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Category (جۆر) *</FormLabel>
+                        <FormControl>
+                          <select 
+                            {...field}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="general">📢 General (گشتی)</option>
+                            <option value="drug">💊 Drugs (دەرمان)</option>
+                            <option value="diseases">🦠 Diseases (نەخۆشی)</option>
+                            <option value="books">📚 Books (کتێب)</option>
+                            <option value="terminology">📖 Terminology (زاراوە)</option>
+                            <option value="slides">🔬 Slides (سلاید)</option>
+                            <option value="tests">🧪 Tests (تاقیکردنەوە)</option>
+                            <option value="notes">📝 Notes (تێبینی)</option>
+                            <option value="instruments">⚕️ Instruments (ئامێر)</option>
+                            <option value="normal_ranges">📊 Normal Ranges (ڕێژەی ئاسایی)</option>
+                          </select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
-                  /> */}
+                  />
 
                   <FormField
                     control={form.control}
@@ -344,7 +384,7 @@ export default function Notifications() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Status</TableHead>
-
+                    <TableHead>Category</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Content</TableHead>
                     <TableHead>Image</TableHead>
@@ -353,7 +393,7 @@ export default function Notifications() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.isArray(allNotifications) && allNotifications.map((notification: any) => (
+                  {Array.isArray(enhancedNotifications) && enhancedNotifications.map((notification: any) => (
                     <TableRow key={notification.id} className={!notification.is_read ? "bg-blue-50 dark:bg-blue-950/20" : ""}>
                       <TableCell>
                         {notification.is_read ? (
@@ -362,7 +402,11 @@ export default function Notifications() {
                           <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
                         )}
                       </TableCell>
-
+                      <TableCell>
+                        <Badge variant="outline" className="gap-1">
+                          {getCategoryIcon(notification.category)} {getCategoryName(notification.category)}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="font-medium">{notification.title}</TableCell>
                       <TableCell className="max-w-md truncate">{notification.body}</TableCell>
                       <TableCell>
