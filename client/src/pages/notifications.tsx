@@ -40,13 +40,15 @@ export default function Notifications() {
     queryKey: ['/api/notifications'],
   });
 
-  // Fetch recent notifications
+  // Fetch recent notifications (for stats only)
   const { data: recentNotificationsResponse } = useQuery({
     queryKey: ['/api/notifications/recent/latest'],
   });
 
-  const notifications = recentNotificationsResponse?.notifications || [];
-  const recentNotifications = recentNotificationsResponse?.notifications || [];
+  // Use all notifications from the main endpoint
+  const notifications = (notificationsResponse as any)?.items || [];
+  const allNotifications = (notificationsResponse as any)?.items || [];
+  const recentNotifications = (recentNotificationsResponse as any)?.notifications || [];
 
   const createNotificationMutation = useMutation({
     mutationFn: (data: any) => fetch('/api/notifications/', {
@@ -269,7 +271,7 @@ export default function Notifications() {
               <Bell className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Notifications</p>
-                <p className="text-2xl font-bold">{Array.isArray(recentNotifications) ? recentNotifications.length : 0}</p>
+                <p className="text-2xl font-bold">{(notificationsResponse as any)?.total || allNotifications.length}</p>
               </div>
             </div>
           </CardContent>
@@ -319,7 +321,7 @@ export default function Notifications() {
             <div className="flex justify-center py-8">
               <LoadingSpinner />
             </div>
-          ) : !Array.isArray(recentNotifications) || recentNotifications.length === 0 ? (
+          ) : !Array.isArray(allNotifications) || allNotifications.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No notifications found. Create your first notification above.
             </div>
@@ -337,7 +339,7 @@ export default function Notifications() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.isArray(recentNotifications) && recentNotifications.map((notification: any) => (
+                  {Array.isArray(allNotifications) && allNotifications.map((notification: any) => (
                     <TableRow key={notification.id} className={!notification.is_read ? "bg-blue-50 dark:bg-blue-950/20" : ""}>
                       <TableCell>
                         {notification.is_read ? (
