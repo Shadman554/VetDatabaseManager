@@ -190,14 +190,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Title and content are required' });
       }
 
-      const response = await fetch('https://python-database-production.up.railway.app/api/notifications/', {
+      // Get authentication token
+      const username = process.env.VET_API_USERNAME || 'admin';
+      const password = process.env.VET_API_PASSWORD || 'admin123';
+      
+      const authResponse = await fetch('https://python-database-production.up.railway.app/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content, type: type || 'general' }),
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!authResponse.ok) {
+        return res.status(401).json({ error: 'Authentication failed' });
+      }
+
+      const { access_token } = await authResponse.json();
+
+      // Create notification with authentication (API expects 'body' field not 'content')
+      const response = await fetch('https://python-database-production.up.railway.app/api/notifications/', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${access_token}`
+        },
+        body: JSON.stringify({ 
+          title, 
+          body: content, // API expects 'body' field
+          type: type || 'general' 
+        }),
       });
 
       if (!response.ok) {
-        return res.status(response.status).json({ error: 'Failed to create notification' });
+        const errorText = await response.text();
+        console.error('Notification creation error:', response.status, errorText);
+        return res.status(response.status).json({ error: 'Failed to create notification', details: errorText });
       }
 
       const notification = await response.json();
@@ -212,9 +238,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
+      // Get authentication token
+      const username = process.env.VET_API_USERNAME || 'admin';
+      const password = process.env.VET_API_PASSWORD || 'admin123';
+      
+      const authResponse = await fetch('https://python-database-production.up.railway.app/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!authResponse.ok) {
+        return res.status(401).json({ error: 'Authentication failed' });
+      }
+
+      const { access_token } = await authResponse.json();
+      
       const response = await fetch(`https://python-database-production.up.railway.app/api/notifications/${id}/read`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${access_token}`
+        },
       });
 
       if (!response.ok) {
@@ -231,9 +276,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/notifications/mark-all-read", async (req, res) => {
     try {
+      // Get authentication token
+      const username = process.env.VET_API_USERNAME || 'admin';
+      const password = process.env.VET_API_PASSWORD || 'admin123';
+      
+      const authResponse = await fetch('https://python-database-production.up.railway.app/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!authResponse.ok) {
+        return res.status(401).json({ error: 'Authentication failed' });
+      }
+
+      const { access_token } = await authResponse.json();
+
       const response = await fetch('https://python-database-production.up.railway.app/api/notifications/mark-all-read', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${access_token}`
+        },
       });
 
       if (!response.ok) {
@@ -252,9 +316,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
+      // Get authentication token
+      const username = process.env.VET_API_USERNAME || 'admin';
+      const password = process.env.VET_API_PASSWORD || 'admin123';
+      
+      const authResponse = await fetch('https://python-database-production.up.railway.app/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!authResponse.ok) {
+        return res.status(401).json({ error: 'Authentication failed' });
+      }
+
+      const { access_token } = await authResponse.json();
+      
       const response = await fetch(`https://python-database-production.up.railway.app/api/notifications/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${access_token}`
+        },
       });
 
       if (!response.ok) {
