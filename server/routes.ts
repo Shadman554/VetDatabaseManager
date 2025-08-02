@@ -236,6 +236,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Title and content are required' });
       }
 
+      // Validate image URL length to prevent database errors
+      if (image_url && image_url.length > 500) {
+        return res.status(400).json({ 
+          error: 'Image URL too long',
+          details: 'Image URL must be under 500 characters. Use direct web URLs only, not uploaded files or base64 data.'
+        });
+      }
+
       // Get authentication token
       const username = process.env.VET_API_USERNAME || 'admin';
       const password = process.env.VET_API_PASSWORD || 'admin123';

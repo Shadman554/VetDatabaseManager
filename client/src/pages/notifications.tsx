@@ -266,10 +266,20 @@ export default function Notifications() {
                         <FormLabel>Image URL (بەستەری وێنە) - Optional</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="https://example.com/image.jpg"
+                            placeholder="https://example.com/image.jpg (must be web URL, not uploaded file)"
                             {...field}
+                            maxLength={500}
                           />
                         </FormControl>
+                        <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                          <div>• Use direct web URLs only (https://...)</div>
+                          <div>• Image must be publicly accessible online</div>
+                          <div>• Recommended size: 300x200px or similar</div>
+                          <div>• Max URL length: 500 characters</div>
+                          <div className="text-orange-600 dark:text-orange-400">
+                            ⚠️ Don't upload files - the database only accepts web URLs
+                          </div>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}

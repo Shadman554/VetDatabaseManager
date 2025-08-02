@@ -111,7 +111,7 @@ export const notificationSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, "Title is required"),
   body: z.string().min(1, "Content is required"),
-  image_url: z.string().url().optional().or(z.literal("")),
+  image_url: z.string().url().max(500, "Image URL must be under 500 characters").optional().or(z.literal("")),
   timestamp: z.string().optional(),
   // Client-side category (not sent to API)
   category: z.enum(["general", "drug", "diseases", "books", "terminology", "slides", "tests", "notes", "instruments", "normal_ranges"]).default("general"),

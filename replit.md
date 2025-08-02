@@ -5,7 +5,8 @@
 This is a comprehensive admin panel for a veterinary educational platform built with React, TypeScript, Express.js, and Drizzle ORM. The application provides a complete CRUD content management system for educational resources including books, diseases, drugs, dictionary terms, staff information, and more. It features a clean, modern interface built with shadcn/ui components and Tailwind CSS with full create, read, update, and delete capabilities for all content types.
 
 ### Recent Updates (August 2025)
-- **Comprehensive Notification System Implementation (2025-08-02)**: Added complete notification management with admin interface for creating, viewing, marking as read, and deleting notifications. Integrated with external veterinary API endpoints for real-time notification handling, supporting Kurdish/English content and various notification types (general, drug, disease, quiz, update, reminder).
+- **Notification Categories & Image URL Fix (2025-08-02)**: Added comprehensive notification categorization system with 10 content types (general, drugs, diseases, books, terminology, slides, tests, notes, instruments, normal ranges) with bilingual labels and icons. Fixed image URL validation to prevent database errors - now enforces 500-character limit and requires web URLs only (not uploaded files or base64 data).
+- **Comprehensive Notification System Implementation (2025-08-02)**: Added complete notification management with admin interface for creating, viewing, marking as read, and deleting notifications. Integrated with external veterinary API endpoints for real-time notification handling, supporting Kurdish/English content and various notification types.
 
 ### Previous Updates (July 2025)
 - **One-Click Deployment Package (2025-07-22)**: Created complete deployment package with automated setup scripts, documentation, and launcher for easy PC deployment
