@@ -108,16 +108,14 @@ export const urineSlideSchema = z.object({
 });
 
 export const notificationSchema = z.object({
-  id: z.number().optional(),
+  id: z.string().optional(),
   title: z.string().min(1, "Title is required"),
-  content: z.string().min(1, "Content is required"),
-  type: z.enum(["general", "drug", "disease", "quiz", "update", "reminder"]).default("general"),
+  body: z.string().min(1, "Content is required"),
   image_url: z.string().url().optional().or(z.literal("")),
-  is_read: z.boolean().default(false),
-  created_at: z.string().optional(),
+  timestamp: z.string().optional(),
 });
 
-export const insertNotificationSchema = notificationSchema.omit({ id: true, created_at: true });
+export const insertNotificationSchema = notificationSchema.omit({ id: true, timestamp: true });
 
 export const appLinkSchema = z.object({
   title: z.string().min(1, "Title is required"),

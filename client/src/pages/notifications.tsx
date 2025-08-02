@@ -29,10 +29,8 @@ export default function Notifications() {
     resolver: zodResolver(insertNotificationSchema),
     defaultValues: {
       title: "",
-      content: "",
-      type: "general" as const,
+      body: "",
       image_url: "",
-      is_read: false,
     },
   });
 
@@ -55,7 +53,11 @@ export default function Notifications() {
     mutationFn: (data: any) => fetch('/api/notifications/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        title: data.title,
+        content: data.body, // Convert body back to content for server
+        image_url: data.image_url
+      }),
     }).then(res => res.json()),
     onSuccess: () => {
       toast({
@@ -124,29 +126,9 @@ export default function Notifications() {
     createNotificationMutation.mutate(data);
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'drug': return '💊';
-      case 'disease': return '🦠';
-      case 'quiz': return '📝';
-      case 'update': return '🔄';
-      case 'reminder': return '⏰';
-      default: return '📢';
-    }
-  };
 
-  const getTypeBadgeVariant = (type: string) => {
-    switch (type) {
-      case 'drug': return 'outline';
-      case 'disease': return 'destructive';
-      case 'quiz': return 'secondary';
-      case 'update': return 'default';
-      case 'reminder': return 'secondary';
-      default: return 'default';
-    }
-  };
 
-  const unreadCount = Array.isArray(recentNotifications) ? recentNotifications.length : 0;
+  const unreadCount = Array.isArray(allNotifications) ? allNotifications.length : 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -193,7 +175,7 @@ export default function Notifications() {
                   
                   <FormField
                     control={form.control}
-                    name="content"
+                    name="body"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Content (ناوەڕۆک) *</FormLabel>
@@ -319,13 +301,25 @@ export default function Notifications() {
         </Card>
       </div>
 
-      {/* Testing Instructions */}
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          <strong>API Status:</strong> The external notification API is currently experiencing database schema issues (missing "type" column). This affects reading and creating new notifications. Previously created notifications are still stored and will reappear when the API is fixed.
-        </AlertDescription>
-      </Alert>
+      {/* Success Status for Working API */}
+      {notifications.length > 0 && (
+        <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+          <Bell className="h-4 w-4 text-green-600" />
+          <AlertDescription>
+            <strong>System Active:</strong> Found {notifications.length} notifications. The notification system is working properly. You can create notifications with titles, content, and image URLs that will be sent to mobile app users.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Empty State for No Notifications */}
+      {notifications.length === 0 && (
+        <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+          <Bell className="h-4 w-4 text-blue-600" />
+          <AlertDescription>
+            <strong>Ready to Use:</strong> No notifications found. Create your first notification using the form above - it will be sent to all mobile app users instantly.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Notifications Table */}
       <Card>
@@ -350,7 +344,7 @@ export default function Notifications() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Status</TableHead>
-                    <TableHead>Type</TableHead>
+
                     <TableHead>Title</TableHead>
                     <TableHead>Content</TableHead>
                     <TableHead>Image</TableHead>
@@ -368,11 +362,7 @@ export default function Notifications() {
                           <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
                         )}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="default">
-                          {getTypeIcon(notification.type || 'general')} {notification.type || 'General'}
-                        </Badge>
-                      </TableCell>
+
                       <TableCell className="font-medium">{notification.title}</TableCell>
                       <TableCell className="max-w-md truncate">{notification.body}</TableCell>
                       <TableCell>
@@ -415,16 +405,18 @@ export default function Notifications() {
                                 </div>
                                 <div>
                                   <label className="text-sm font-medium">Content:</label>
-                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{notification.content}</p>
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{notification.body}</p>
                                 </div>
-                                <div>
-                                  <label className="text-sm font-medium">Type:</label>
-                                  <p className="text-sm text-muted-foreground">{notification.type || 'general'}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">Status:</label>
-                                  <p className="text-sm text-muted-foreground">{notification.is_read ? 'Read' : 'Unread'}</p>
-                                </div>
+                                {notification.image_url && (
+                                  <div>
+                                    <label className="text-sm font-medium">Image:</label>
+                                    <img 
+                                      src={notification.image_url} 
+                                      alt="Notification image" 
+                                      className="mt-2 max-w-sm rounded border"
+                                    />
+                                  </div>
+                                )}
                               </div>
                             </DialogContent>
                           </Dialog>

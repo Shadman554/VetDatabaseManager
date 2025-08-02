@@ -230,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/notifications/", async (req, res) => {
     try {
-      const { title, content, type, image_url } = req.body;
+      const { title, content, image_url } = req.body;
 
       if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
@@ -263,7 +263,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title, 
           body: content, // API expects 'body' field
           image_url: image_url || null
-          // Note: type field not supported by external API database
         }),
       });
 
