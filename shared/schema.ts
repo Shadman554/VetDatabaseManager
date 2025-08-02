@@ -108,11 +108,15 @@ export const urineSlideSchema = z.object({
 });
 
 export const notificationSchema = z.object({
+  id: z.number().optional(),
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
-  type: z.string().optional(),
-  priority: z.string().optional(),
+  type: z.enum(["general", "drug", "disease", "quiz", "update", "reminder"]).default("general"),
+  is_read: z.boolean().default(false),
+  created_at: z.string().optional(),
 });
+
+export const insertNotificationSchema = notificationSchema.omit({ id: true, created_at: true });
 
 export const appLinkSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -148,5 +152,6 @@ export type UrineSlide = z.infer<typeof urineSlideSchema>;
 export type OtherSlide = z.infer<typeof otherSlideSchema>;
 export type StoolSlide = z.infer<typeof stoolSlideSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type AppLink = z.infer<typeof appLinkSchema>;
 export type About = z.infer<typeof aboutSchema>;

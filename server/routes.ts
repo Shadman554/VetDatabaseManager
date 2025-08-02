@@ -143,7 +143,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification management routes
+  app.get("/api/notifications/", async (req, res) => {
+    try {
+      const response = await fetch('https://python-database-production.up.railway.app/api/notifications/', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Failed to fetch notifications' });
+      }
+
+      const notifications = await response.json();
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.get("/api/notifications/recent/latest", async (req, res) => {
+    try {
+      const response = await fetch('https://python-database-production.up.railway.app/api/notifications/recent/latest', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Failed to fetch recent notifications' });
+      }
+
+      const notifications = await response.json();
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error fetching recent notifications:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/notifications/", async (req, res) => {
+    try {
+      const { title, content, type } = req.body;
+
+      if (!title || !content) {
+        return res.status(400).json({ error: 'Title and content are required' });
+      }
+
+      const response = await fetch('https://python-database-production.up.railway.app/api/notifications/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, type: type || 'general' }),
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Failed to create notification' });
+      }
+
+      const notification = await response.json();
+      res.json(notification);
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.put("/api/notifications/:id/read", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const response = await fetch(`https://python-database-production.up.railway.app/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Failed to mark notification as read' });
+      }
+
+      const result = await response.json();
+      res.json(result);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.put("/api/notifications/mark-all-read", async (req, res) => {
+    try {
+      const response = await fetch('https://python-database-production.up.railway.app/api/notifications/mark-all-read', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Failed to mark all notifications as read' });
+      }
+
+      const result = await response.json();
+      res.json(result);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.delete("/api/notifications/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const response = await fetch(`https://python-database-production.up.railway.app/api/notifications/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Failed to delete notification' });
+      }
+
+      res.json({ success: true, message: 'Notification deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
