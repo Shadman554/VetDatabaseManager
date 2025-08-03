@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { noteSchema } from "@shared/schema";
 import { api } from "@/lib/api";
 import { useState, useMemo, useRef } from "react";
-import { Edit, Trash2, Plus, X, Eye, EyeOff, Type, List, Hash, Bold, FileText } from "lucide-react";
+import { Edit, Trash2, Plus, X, Eye, EyeOff, Type, List, Hash, Bold, FileText, BookOpen, Code } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,6 +27,7 @@ export default function Notes() {
   const [showPreview, setShowPreview] = useState(false);
   const [selectedNote, setSelectedNote] = useState<any>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showJsonMode, setShowJsonMode] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Search, filter, and sort state
@@ -216,11 +217,72 @@ export default function Notes() {
     form.reset();
   };
 
+  // Parse and format JSON structured content
+  const parseJsonContent = (content: string) => {
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed.sections) {
+        const elements: JSX.Element[] = [];
+        
+        parsed.sections.forEach((section: any, index: number) => {
+          // Section title
+          if (section.title) {
+            elements.push(
+              <h2 key={`section-${index}-title`} className="text-xl font-bold text-blue-700 dark:text-blue-300 mt-6 mb-3" dir="auto">
+                {section.title}
+              </h2>
+            );
+          }
+          
+          // Section content
+          if (section.content) {
+            const lines = section.content.split('\\n');
+            lines.forEach((line: string, lineIndex: number) => {
+              const trimmedLine = line.trim();
+              if (!trimmedLine) {
+                elements.push(<div key={`${index}-${lineIndex}-space`} className="h-2" />);
+                return;
+              }
+              
+              // Bullet points
+              if (trimmedLine.startsWith('•') || trimmedLine.startsWith('*')) {
+                elements.push(
+                  <div key={`${index}-${lineIndex}`} className="ml-4 mb-1 text-gray-700 dark:text-gray-300" dir="auto">
+                    {trimmedLine}
+                  </div>
+                );
+                return;
+              }
+              
+              // Regular text
+              elements.push(
+                <p key={`${index}-${lineIndex}`} className="mb-2 text-gray-800 dark:text-gray-200" dir="auto">
+                  {trimmedLine}
+                </p>
+              );
+            });
+          }
+        });
+        
+        return elements;
+      }
+    } catch (error) {
+      // Not valid JSON, fall back to regular formatting
+    }
+    return null;
+  };
+
   // Format text content for display (similar to Flutter app)
   const formatTextContent = (content: string) => {
     if (!content) return '';
     
-    // Split by ** to separate headings from regular text
+    // First try to parse as JSON
+    const jsonContent = parseJsonContent(content);
+    if (jsonContent) {
+      return jsonContent;
+    }
+    
+    // Fall back to regular markdown-style formatting
     const parts = content.split('**');
     const elements: JSX.Element[] = [];
     
@@ -350,6 +412,27 @@ export default function Notes() {
     setShowDetailDialog(true);
   };
 
+  // Insert veterinary contraindications template
+  const insertVetTemplate = () => {
+    const template = {
+      "sections": [
+        {
+          "title": "دەرمانە ئازارپەککەرەکان (Pain Relievers)",
+          "content": "• پارسیتامۆل (Paracetamol) لە پشیلەکاندا قەدەغەیە\\n• دەرمانە پاراستامۆل و هەروەها ئەسپرین قەدەغەیە بۆ پشیلەکان و سەگەکان چونکە ژەهراوییە\\n• دەتوانیت ئەم دەرمانانە وەک جیگرەوەی بەکاربهینی: profien، meloxicam"
+        },
+        {
+          "title": "دەرمانە ناوخۆییەکان (Internal Medications)",
+          "content": "• خۆراک و ناوخۆییەکانی مرۆڤ قەدەغەن بۆ ئاژەڵان\\n• دەرمانەکانی تایبەت بە مرۆڤ زۆر قەدەغەن\\n• پێویستە دەرمانی تایبەت بە ئاژەڵ بەکار بهێنرێت"
+        }
+      ]
+    };
+    
+    const jsonString = JSON.stringify(template, null, 2);
+    form.setValue('description', jsonString, { shouldValidate: true });
+    setShowJsonMode(true);
+    setShowPreview(true);
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
@@ -410,7 +493,27 @@ export default function Notes() {
                     <FormItem>
                       <FormLabel className="flex items-center justify-between">
                         <span>Description</span>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={insertVetTemplate}
+                            className="flex items-center gap-1"
+                          >
+                            <BookOpen className="h-3 w-3" />
+                            Vet Template
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowJsonMode(!showJsonMode)}
+                            className="flex items-center gap-1"
+                          >
+                            <Code className="h-3 w-3" />
+                            {showJsonMode ? 'Text' : 'JSON'}
+                          </Button>
                           <Button
                             type="button"
                             variant="outline"
@@ -424,55 +527,70 @@ export default function Notes() {
                         </div>
                       </FormLabel>
                       
-                      {/* Formatting Toolbar */}
-                      <div className="flex flex-wrap gap-2 p-2 bg-muted rounded-lg border">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => insertFormatting('****')}
-                          className="flex items-center gap-1 text-xs"
-                        >
-                          <Type className="h-3 w-3" />
-                          Heading
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => insertFormatting('## ')}
-                          className="flex items-center gap-1 text-xs"
-                        >
-                          <Hash className="h-3 w-3" />
-                          Sub-heading
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => insertFormatting('* ')}
-                          className="flex items-center gap-1 text-xs"
-                        >
-                          <List className="h-3 w-3" />
-                          Bullet
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => wrapSelection('**', '**')}
-                          className="flex items-center gap-1 text-xs"
-                        >
-                          <Bold className="h-3 w-3" />
-                          Bold
-                        </Button>
-                      </div>
+                      {/* Formatting Toolbar - only show in text mode */}
+                      {!showJsonMode && (
+                        <div className="flex flex-wrap gap-2 p-2 bg-muted rounded-lg border">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => insertFormatting('****')}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <Type className="h-3 w-3" />
+                            Heading
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => insertFormatting('## ')}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <Hash className="h-3 w-3" />
+                            Sub-heading
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => insertFormatting('* ')}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <List className="h-3 w-3" />
+                            Bullet
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => wrapSelection('**', '**')}
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            <Bold className="h-3 w-3" />
+                            Bold
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {/* JSON Mode Helper */}
+                      {showJsonMode && (
+                        <div className="text-sm text-muted-foreground p-2 bg-blue-50 dark:bg-blue-950/20 rounded border">
+                          <p className="font-medium mb-1">JSON Structure Format:</p>
+                          <p>• Use "sections" array with "title" and "content" fields</p>
+                          <p>• Use \\n for line breaks in content</p>
+                          <p>• Example: {`{"sections":[{"title":"Title","content":"Content\\nNew line"}]}`}</p>
+                        </div>
+                      )}
                       
                       <Tabs value={showPreview ? "preview" : "edit"} className="w-full">
                         <TabsContent value="edit">
                           <FormControl>
                             <Textarea 
-                              placeholder="Enter note content with formatting:&#10;**Main Heading**&#10;## Sub-heading&#10;* Bullet point&#10;Regular text"
+                              placeholder={showJsonMode ? 
+                                'Enter JSON structured content:&#10;{"sections":[{"title":"Title","content":"Content\\nNew line"}]}' :
+                                'Enter note content with formatting:&#10;**Main Heading**&#10;## Sub-heading&#10;* Bullet point&#10;Regular text'
+                              }
                               rows={12}
                               className="font-mono"
                               dir="auto"
@@ -496,7 +614,11 @@ export default function Notes() {
                       </Tabs>
                       
                       <div className="text-xs text-muted-foreground">
-                        <strong>Formatting Guide:</strong> **Text** = Heading, ## Text = Sub-heading, * Text = Bullet point
+                        <strong>Formatting Guide:</strong> 
+                        {showJsonMode ? 
+                          ' Use JSON structure with sections array for structured content' :
+                          ' **Text** = Heading, ## Text = Sub-heading, * Text = Bullet point'
+                        }
                       </div>
                       
                       <FormMessage />
