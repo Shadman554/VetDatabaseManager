@@ -250,7 +250,29 @@ export default function OtherSlides() {
                     <FormItem>
                       <FormLabel>Slide Name *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter slide name" {...field} />
+                        <div className="flex items-center gap-2">
+                          <Input placeholder="Enter slide name" {...field} />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const currentValue = field.value || "";
+                              if (currentValue.includes("{") && currentValue.includes("}")) {
+                                // Remove braces if they exist
+                                const newValue = currentValue.replace(/[{}]/g, "");
+                                field.onChange(newValue);
+                              } else {
+                                // Add braces for scientific name
+                                field.onChange(`{${currentValue}}`);
+                              }
+                            }}
+                            className="h-10 w-10 p-0"
+                            title="Toggle scientific name formatting (italic with braces)"
+                          >
+                            <span className="text-sm font-bold italic">I</span>
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -149,6 +149,115 @@ export default function UrineSlides() {
               Add New Slide
             </Button>
           </DialogTrigger>
+          <DialogContent className="max-w-2xl mx-4 sm:mx-0">
+            <DialogHeader>
+              <DialogTitle>{editingSlide ? 'Edit Urine Slide' : 'Add New Urine Slide'}</DialogTitle>
+              <DialogDescription>
+                Add urine microscopy slide information and findings
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slide Name *</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Input placeholder="Enter slide name" {...field} />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const currentValue = field.value || "";
+                              if (currentValue.includes("{") && currentValue.includes("}")) {
+                                // Remove braces if they exist
+                                const newValue = currentValue.replace(/[{}]/g, "");
+                                field.onChange(newValue);
+                              } else {
+                                // Add braces for scientific name
+                                field.onChange(`{${currentValue}}`);
+                              }
+                            }}
+                            className="h-10 w-10 p-0"
+                            title="Toggle scientific name formatting (italic with braces)"
+                          >
+                            <span className="text-sm font-bold italic">I</span>
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter slide description"
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="findings"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Findings</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter microscopic findings"
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="image_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Image URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.com/slide-image.jpg (optional)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end space-x-4">
+                  <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createSlideMutation.isPending || updateSlideMutation.isPending}>
+                    {createSlideMutation.isPending || updateSlideMutation.isPending 
+                      ? "Saving..." 
+                      : (editingSlide ? "Update Slide" : "Add Slide")
+                    }
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
         </Dialog>
       </div>
 
@@ -271,118 +380,6 @@ export default function UrineSlides() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Form Modal */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingSlide ? 'Edit Urine Slide' : 'Add New Urine Slide'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingSlide 
-                ? 'Update the urine slide information and microscopic findings.' 
-                : 'Add a new urine microscopy slide with detailed findings.'
-              }
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Slide Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Normal Urine, Bacterial Infection, Crystals" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-
-              
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Brief description of the urine sample and case background"
-                        rows={3}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="findings"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Microscopic Findings</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Detailed microscopic findings: cells, crystals, bacteria, casts, etc."
-                        rows={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="image_url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="url"
-                        placeholder="https://example.com/slide-image.jpg"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end space-x-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleCancelEdit}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createSlideMutation.isPending || updateSlideMutation.isPending}
-                >
-                  {createSlideMutation.isPending || updateSlideMutation.isPending ? (
-                    <>
-                      <LoadingSpinner size="sm" className="mr-2" />
-                      {editingSlide ? 'Updating...' : 'Adding...'}
-                    </>
-                  ) : (
-                    editingSlide ? 'Update Slide' : 'Add Slide'
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
