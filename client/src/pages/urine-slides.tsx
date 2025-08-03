@@ -204,7 +204,9 @@ export default function UrineSlides() {
                     <TableCell>
                       {slide.scientific_name ? (
                         <span className="italic text-muted-foreground">{slide.scientific_name}</span>
-                      ) : '-'}
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not specified</span>
+                      )}
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {slide.description ? slide.description.substring(0, 50) + '...' : '-'}

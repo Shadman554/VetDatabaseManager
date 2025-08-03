@@ -25,7 +25,7 @@ export default function OtherSlides() {
   
   // Search, filter, and sort state
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("slide_name");
+  const [sortBy, setSortBy] = useState("name");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
@@ -84,7 +84,8 @@ export default function OtherSlides() {
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter((slide: any) =>
-        slide.slide_name?.toLowerCase().includes(search) ||
+        (slide.name || slide.slide_name)?.toLowerCase().includes(search) ||
+        slide.scientific_name?.toLowerCase().includes(search) ||
         slide.description?.toLowerCase().includes(search)
       );
     }
@@ -167,17 +168,25 @@ export default function OtherSlides() {
   });
 
   const onSubmit = (data: any) => {
+    // Transform slide_name to name for API compatibility
+    const apiData = {
+      ...data,
+      name: data.slide_name
+    };
+    delete apiData.slide_name;
+
     if (editingSlide) {
-      updateSlideMutation.mutate({ slide_name: editingSlide.slide_name, data });
+      const slideName = editingSlide.name || editingSlide.slide_name;
+      updateSlideMutation.mutate({ slide_name: slideName, data: apiData });
     } else {
-      createSlideMutation.mutate(data);
+      createSlideMutation.mutate(apiData);
     }
   };
 
   const handleEdit = (slide: any) => {
     setEditingSlide(slide);
     form.reset({
-      slide_name: slide.slide_name || "",
+      slide_name: slide.name || slide.slide_name || "",
       scientific_name: slide.scientific_name || "",
       description: slide.description || "",
       image_url: slide.image_url || "",
@@ -320,7 +329,9 @@ export default function OtherSlides() {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             sortOptions={[
-              { value: "slide_name", label: "Slide Name", key: "slide_name" },
+              { value: "name", label: "Slide Name", key: "name" },
+              { value: "slide_name", label: "Slide Name (Alt)", key: "slide_name" },
+              { value: "scientific_name", label: "Scientific Name", key: "scientific_name" },
               { value: "description", label: "Description", key: "description" },
             ]}
             sortBy={sortBy}
@@ -335,7 +346,7 @@ export default function OtherSlides() {
               setActiveFilters(prev => ({ ...prev, [key]: value }));
             }}
             onClearFilters={() => setActiveFilters({})}
-            placeholder="Search slides by name or description..."
+            placeholder="Search slides by name, scientific name, or description..."
             totalItems={allSlides.length}
             filteredItems={slides.length}
           />
@@ -378,12 +389,14 @@ export default function OtherSlides() {
               </TableHeader>
               <TableBody>
                 {slides.map((slide: any, index: number) => (
-                  <TableRow key={slide.slide_name || slide.id || index}>
-                    <TableCell className="font-medium">{slide.slide_name}</TableCell>
+                  <TableRow key={slide.name || slide.slide_name || slide.id || index}>
+                    <TableCell className="font-medium">{slide.name || slide.slide_name}</TableCell>
                     <TableCell>
                       {slide.scientific_name ? (
                         <span className="italic text-muted-foreground">{slide.scientific_name}</span>
-                      ) : '-'}
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not specified</span>
+                      )}
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate text-sm">
@@ -429,13 +442,13 @@ export default function OtherSlides() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Slide</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{slide.slide_name}"? This action cannot be undone.
+                                Are you sure you want to delete "{slide.name || slide.slide_name}"? This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(slide.slide_name)}
+                                onClick={() => handleDelete(slide.name || slide.slide_name)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
                                 Delete
