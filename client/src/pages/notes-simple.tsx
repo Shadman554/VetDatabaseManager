@@ -447,6 +447,8 @@ export default function NotesSimple() {
           { key: "name", value: "name", label: "Name" },
         ]}
         filterOptions={[]}
+        totalItems={allNotes?.length || 0}
+        filteredItems={notes?.length || 0}
       />
 
       {/* Notes List */}
