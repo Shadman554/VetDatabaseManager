@@ -22,6 +22,7 @@ export default function OtherSlides() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingSlide, setEditingSlide] = useState<any>(null);
+  const [originalSlideName, setOriginalSlideName] = useState<string>("");
   
   // Search, filter, and sort state
   const [searchTerm, setSearchTerm] = useState("");
@@ -177,8 +178,8 @@ export default function OtherSlides() {
     delete apiData.slide_name;
 
     if (editingSlide) {
-      const slideName = editingSlide.name || editingSlide.slide_name;
-      updateSlideMutation.mutate({ slide_name: slideName, data: apiData });
+      // Use the original slide name stored when editing started
+      updateSlideMutation.mutate({ slide_name: originalSlideName, data: apiData });
     } else {
       createSlideMutation.mutate(apiData);
     }
@@ -188,6 +189,8 @@ export default function OtherSlides() {
 
   const handleEdit = (slide: any) => {
     setEditingSlide(slide);
+    // Store the original name for API calls
+    setOriginalSlideName(slide.name || slide.slide_name || "");
     form.reset({
       slide_name: slide.name || slide.slide_name || "",
       scientific_name: slide.scientific_name || "",
@@ -204,6 +207,7 @@ export default function OtherSlides() {
 
   const handleCancelEdit = () => {
     setEditingSlide(null);
+    setOriginalSlideName("");
     setShowForm(false);
     form.reset();
   };

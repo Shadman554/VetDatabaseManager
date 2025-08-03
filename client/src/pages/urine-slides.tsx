@@ -22,6 +22,7 @@ export default function UrineSlides() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingSlide, setEditingSlide] = useState<any>(null);
+  const [originalSlideName, setOriginalSlideName] = useState<string>("");
   // Removed italic slides state to prevent database corruption issues
   
   const form = useForm({
@@ -107,7 +108,8 @@ export default function UrineSlides() {
 
   const onSubmit = (data: any) => {
     if (editingSlide) {
-      updateSlideMutation.mutate({ name: editingSlide.name, data });
+      // Use the original slide name stored when editing started
+      updateSlideMutation.mutate({ name: originalSlideName, data });
     } else {
       createSlideMutation.mutate(data);
     }
@@ -117,6 +119,8 @@ export default function UrineSlides() {
 
   const handleEdit = (slide: any) => {
     setEditingSlide(slide);
+    // Store the original name for API calls
+    setOriginalSlideName(slide.name || "");
     form.reset({
       name: slide.name || "",
       species: slide.species || "",
@@ -133,6 +137,7 @@ export default function UrineSlides() {
 
   const handleCancelEdit = () => {
     setEditingSlide(null);
+    setOriginalSlideName("");
     setShowForm(false);
     form.reset();
   };
