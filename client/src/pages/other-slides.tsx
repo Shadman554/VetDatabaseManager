@@ -33,6 +33,7 @@ export default function OtherSlides() {
     resolver: zodResolver(otherSlideSchema),
     defaultValues: {
       slide_name: "",
+      scientific_name: "",
       description: "",
       image_url: "",
     },
@@ -177,6 +178,7 @@ export default function OtherSlides() {
     setEditingSlide(slide);
     form.reset({
       slide_name: slide.slide_name || "",
+      scientific_name: slide.scientific_name || "",
       description: slide.description || "",
       image_url: slide.image_url || "",
     });
@@ -238,6 +240,20 @@ export default function OtherSlides() {
                       <FormLabel>Slide Name *</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter slide name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="scientific_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Scientific Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter scientific name (e.g. Malassezia pachydermatis)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -354,6 +370,7 @@ export default function OtherSlides() {
                 <TableHeader>
                 <TableRow>
                   <TableHead>Slide Name</TableHead>
+                  <TableHead>Scientific Name</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Image</TableHead>
                   <TableHead>Actions</TableHead>
@@ -363,9 +380,14 @@ export default function OtherSlides() {
                 {slides.map((slide: any, index: number) => (
                   <TableRow key={slide.slide_name || slide.id || index}>
                     <TableCell className="font-medium">{slide.slide_name}</TableCell>
+                    <TableCell>
+                      {slide.scientific_name ? (
+                        <span className="italic text-muted-foreground">{slide.scientific_name}</span>
+                      ) : '-'}
+                    </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate text-sm">
-                        {slide.description ? slide.description.substring(0, 100) + '...' : '-'}
+                        {slide.description ? slide.description.substring(0, 80) + '...' : '-'}
                       </div>
                     </TableCell>
                     <TableCell>
