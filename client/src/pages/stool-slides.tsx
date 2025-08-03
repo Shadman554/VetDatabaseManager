@@ -28,7 +28,7 @@ export default function StoolSlides() {
   const [sortBy, setSortBy] = useState("name");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const [italicSlides, setItalicSlides] = useState<Set<string>>(new Set());
+  // Removed italic slides state to prevent database corruption issues
   
   const form = useForm({
     resolver: zodResolver(stoolSlideSchema),
@@ -183,18 +183,7 @@ export default function StoolSlides() {
     }
   };
 
-  const toggleItalic = (slide: any) => {
-    const slideId = slide.id || slide.name || slide.slide_name;
-    setItalicSlides(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(slideId)) {
-        newSet.delete(slideId);
-      } else {
-        newSet.add(slideId);
-      }
-      return newSet;
-    });
-  };
+  // Removed toggleItalic functionality to prevent unintended database updates
 
   const handleEdit = (slide: any) => {
     setEditingSlide(slide);
@@ -391,18 +380,9 @@ export default function StoolSlides() {
                   <TableRow key={slide.name || slide.slide_name || slide.id || index}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        <span className={italicSlides.has(slide.id || slide.name || slide.slide_name) ? "italic text-muted-foreground" : ""}>
+                        <span>
                           {slide.name || slide.slide_name}
                         </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => toggleItalic(slide)}
-                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
-                          title={italicSlides.has(slide.id || slide.name || slide.slide_name) ? "Remove italic formatting" : "Make italic (scientific name)"}
-                        >
-                          <span className={italicSlides.has(slide.id || slide.name || slide.slide_name) ? "text-xs font-bold italic" : "text-xs"}>I</span>
-                        </Button>
                       </div>
                     </TableCell>
                     <TableCell className="max-w-xs">

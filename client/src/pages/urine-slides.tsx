@@ -22,7 +22,7 @@ export default function UrineSlides() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingSlide, setEditingSlide] = useState<any>(null);
-  const [italicSlides, setItalicSlides] = useState<Set<string>>(new Set());
+  // Removed italic slides state to prevent database corruption issues
   
   const form = useForm({
     resolver: zodResolver(urineSlideSchema),
@@ -112,18 +112,7 @@ export default function UrineSlides() {
     }
   };
 
-  const toggleItalic = (slide: any) => {
-    const slideId = slide.id || slide.name;
-    setItalicSlides(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(slideId)) {
-        newSet.delete(slideId);
-      } else {
-        newSet.add(slideId);
-      }
-      return newSet;
-    });
-  };
+  // Removed toggleItalic functionality to prevent database corruption issues
 
   const handleEdit = (slide: any) => {
     setEditingSlide(slide);
@@ -213,18 +202,9 @@ export default function UrineSlides() {
                   <TableRow key={slide.name || slide.id || index}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        <span className={italicSlides.has(slide.id || slide.name) ? "italic text-muted-foreground" : ""}>
+                        <span>
                           {slide.name}
                         </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => toggleItalic(slide)}
-                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
-                          title={italicSlides.has(slide.id || slide.name) ? "Remove italic formatting" : "Make italic (scientific name)"}
-                        >
-                          <span className={italicSlides.has(slide.id || slide.name) ? "text-xs font-bold italic" : "text-xs"}>I</span>
-                        </Button>
                       </div>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
