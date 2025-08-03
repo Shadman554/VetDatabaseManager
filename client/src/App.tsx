@@ -16,7 +16,7 @@ import Staff from "@/pages/staff";
 import NormalRanges from "@/pages/normal-ranges";
 import TutorialVideos from "@/pages/tutorial-videos";
 import Instruments from "@/pages/instruments";
-import Notes from "@/pages/notes";
+import NotesSimple from "@/pages/notes-simple";
 import UrineSlides from "@/pages/urine-slides";
 import OtherSlides from "@/pages/other-slides";
 import StoolSlides from "@/pages/stool-slides";
@@ -69,7 +69,7 @@ function MainApp() {
       case "instruments":
         return <Instruments />;
       case "notes":
-        return <Notes />;
+        return <NotesSimple />;
       case "urine-slides":
         return <UrineSlides />;
       case "other-slides":
