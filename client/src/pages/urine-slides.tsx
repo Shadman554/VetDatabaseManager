@@ -22,12 +22,12 @@ export default function UrineSlides() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingSlide, setEditingSlide] = useState<any>(null);
+  const [italicSlides, setItalicSlides] = useState<Set<string>>(new Set());
   
   const form = useForm({
     resolver: zodResolver(urineSlideSchema),
     defaultValues: {
       name: "",
-      scientific_name: "",
       description: "",
       findings: "",
       image_url: "",
@@ -112,11 +112,23 @@ export default function UrineSlides() {
     }
   };
 
+  const toggleItalic = (slide: any) => {
+    const slideId = slide.id || slide.name;
+    setItalicSlides(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(slideId)) {
+        newSet.delete(slideId);
+      } else {
+        newSet.add(slideId);
+      }
+      return newSet;
+    });
+  };
+
   const handleEdit = (slide: any) => {
     setEditingSlide(slide);
     form.reset({
       name: slide.name || "",
-      scientific_name: slide.scientific_name || "",
       description: slide.description || "",
       findings: slide.findings || "",
       image_url: slide.image_url || "",
@@ -190,7 +202,6 @@ export default function UrineSlides() {
                 <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Scientific Name</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Findings</TableHead>
                   <TableHead>Image</TableHead>
@@ -200,19 +211,27 @@ export default function UrineSlides() {
               <TableBody>
                 {slides.map((slide: any, index: number) => (
                   <TableRow key={slide.name || slide.id || index}>
-                    <TableCell className="font-medium">{slide.name}</TableCell>
-                    <TableCell>
-                      {slide.scientific_name ? (
-                        <span className="italic text-muted-foreground">{slide.scientific_name}</span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Not specified</span>
-                      )}
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <span className={italicSlides.has(slide.id || slide.name) ? "italic text-muted-foreground" : ""}>
+                          {slide.name}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleItalic(slide)}
+                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                          title={italicSlides.has(slide.id || slide.name) ? "Remove italic formatting" : "Make italic (scientific name)"}
+                        >
+                          <span className={italicSlides.has(slide.id || slide.name) ? "text-xs font-bold italic" : "text-xs"}>I</span>
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
-                      {slide.description ? slide.description.substring(0, 50) + '...' : '-'}
+                      {slide.description ? slide.description.substring(0, 60) + '...' : '-'}
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
-                      {slide.findings ? slide.findings.substring(0, 50) + '...' : '-'}
+                      {slide.findings ? slide.findings.substring(0, 60) + '...' : '-'}
                     </TableCell>
                     <TableCell>
                       {slide.image_url ? (
@@ -302,19 +321,7 @@ export default function UrineSlides() {
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="scientific_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Scientific Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter scientific name (e.g. Escherichia coli)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               
               <FormField
                 control={form.control}

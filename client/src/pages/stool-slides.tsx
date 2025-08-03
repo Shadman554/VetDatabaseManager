@@ -28,6 +28,7 @@ export default function StoolSlides() {
   const [sortBy, setSortBy] = useState("name");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [italicSlides, setItalicSlides] = useState<Set<string>>(new Set());
   
   const form = useForm({
     resolver: zodResolver(stoolSlideSchema),
@@ -85,7 +86,6 @@ export default function StoolSlides() {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter((slide: any) =>
         (slide.name || slide.slide_name)?.toLowerCase().includes(search) ||
-        slide.scientific_name?.toLowerCase().includes(search) ||
         slide.description?.toLowerCase().includes(search)
       );
     }
@@ -183,11 +183,23 @@ export default function StoolSlides() {
     }
   };
 
+  const toggleItalic = (slide: any) => {
+    const slideId = slide.id || slide.name || slide.slide_name;
+    setItalicSlides(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(slideId)) {
+        newSet.delete(slideId);
+      } else {
+        newSet.add(slideId);
+      }
+      return newSet;
+    });
+  };
+
   const handleEdit = (slide: any) => {
     setEditingSlide(slide);
     form.reset({
       slide_name: slide.name || slide.slide_name || "",
-      scientific_name: slide.scientific_name || "",
       description: slide.description || "",
       image_url: slide.image_url || "",
     });
@@ -255,19 +267,7 @@ export default function StoolSlides() {
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="scientific_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Scientific Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter scientific name (e.g. Toxoplasma gondii)" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
                 
                 <FormField
                   control={form.control}
@@ -331,7 +331,6 @@ export default function StoolSlides() {
             sortOptions={[
               { value: "name", label: "Slide Name", key: "name" },
               { value: "slide_name", label: "Slide Name (Alt)", key: "slide_name" },
-              { value: "scientific_name", label: "Scientific Name", key: "scientific_name" },
               { value: "description", label: "Description", key: "description" },
             ]}
             sortBy={sortBy}
@@ -346,7 +345,7 @@ export default function StoolSlides() {
               setActiveFilters(prev => ({ ...prev, [key]: value }));
             }}
             onClearFilters={() => setActiveFilters({})}
-            placeholder="Search slides by name, scientific name, or description..."
+            placeholder="Search slides by name or description..."
             totalItems={allSlides.length}
             filteredItems={slides.length}
           />
@@ -381,7 +380,6 @@ export default function StoolSlides() {
                 <TableHeader>
                 <TableRow>
                   <TableHead>Slide Name</TableHead>
-                  <TableHead>Scientific Name</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Image</TableHead>
                   <TableHead>Actions</TableHead>
@@ -390,17 +388,25 @@ export default function StoolSlides() {
               <TableBody>
                 {slides.map((slide: any, index: number) => (
                   <TableRow key={slide.name || slide.slide_name || slide.id || index}>
-                    <TableCell className="font-medium">{slide.name || slide.slide_name}</TableCell>
-                    <TableCell>
-                      {slide.scientific_name ? (
-                        <span className="italic text-muted-foreground">{slide.scientific_name}</span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Not specified</span>
-                      )}
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <span className={italicSlides.has(slide.id || slide.name || slide.slide_name) ? "italic text-muted-foreground" : ""}>
+                          {slide.name || slide.slide_name}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleItalic(slide)}
+                          className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                          title={italicSlides.has(slide.id || slide.name || slide.slide_name) ? "Remove italic formatting" : "Make italic (scientific name)"}
+                        >
+                          <span className={italicSlides.has(slide.id || slide.name || slide.slide_name) ? "text-xs font-bold italic" : "text-xs"}>I</span>
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate text-sm">
-                        {slide.description ? slide.description.substring(0, 80) + '...' : '-'}
+                        {slide.description ? slide.description.substring(0, 100) + '...' : '-'}
                       </div>
                     </TableCell>
                     <TableCell>
