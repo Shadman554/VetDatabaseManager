@@ -76,6 +76,8 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
     const response = await fetch(url, {
       ...options,
       headers,
+      // Add timeout to prevent hanging requests  
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     });
 
     console.log('Response status:', response.status, response.statusText);
@@ -98,7 +100,12 @@ async function makeRequest(endpoint: string, options: RequestInit = {}) {
     // Handle network errors
     if (error instanceof TypeError && error.message.includes('fetch')) {
       console.error('Network error for URL:', url, error);
-      throw new ApiError(0, 'Network error - check your connection');
+      throw new ApiError(0, 'Network connection failed - please try again');
+    }
+    // Handle timeout errors
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('Request timeout for URL:', url);
+      throw new ApiError(408, 'Request timeout - please try again');
     }
     console.error('Request error:', error);
     throw error;

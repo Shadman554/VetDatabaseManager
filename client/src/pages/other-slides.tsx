@@ -130,8 +130,32 @@ export default function OtherSlides() {
   });
 
   const updateSlideMutation = useMutation({
-    mutationFn: ({ slide_name, data }: { slide_name: string; data: any }) => 
-      api.otherSlides.update(slide_name, data),
+    mutationFn: async ({ slide_name, data }: { slide_name: string; data: any }) => {
+      // Retry logic for network issues
+      let lastError: any;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          return await api.otherSlides.update(slide_name, data);
+        } catch (error: any) {
+          lastError = error;
+          
+          // Don't retry on 404 or auth errors
+          if (error.status === 404 || error.status === 401 || error.status === 403) {
+            throw error;
+          }
+          
+          // Retry on network errors
+          if (attempt < 2 && (error.status === 0 || error.message.includes('Network') || error.message.includes('timeout'))) {
+            console.log(`Update failed, retrying... (${attempt + 1}/3)`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            continue;
+          }
+          
+          throw error;
+        }
+      }
+      throw lastError;
+    },
     onSuccess: () => {
       toast({
         title: "Success",
@@ -140,12 +164,25 @@ export default function OtherSlides() {
       queryClient.invalidateQueries({ queryKey: ['otherSlides'] });
       setShowForm(false);
       setEditingSlide(null);
+      setOriginalSlideName("");
       form.reset();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      let errorMessage = "Failed to update slide";
+      
+      if (error.status === 404) {
+        errorMessage = "Slide not found in database - it may have been deleted";
+      } else if (error.status === 0 || error.message.includes('Network')) {
+        errorMessage = "Connection problem - please check internet and try again";
+      } else if (error.status === 408 || error.message.includes('timeout')) {
+        errorMessage = "Request timed out - please try again";
+      } else if (error.message) {
+        errorMessage = `Update failed: ${error.message}`;
+      }
+      
       toast({
-        title: "Error",
-        description: `Failed to update slide: ${error.message}`,
+        title: "Update Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     },
