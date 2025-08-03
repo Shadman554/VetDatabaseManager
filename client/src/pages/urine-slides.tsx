@@ -28,6 +28,7 @@ export default function UrineSlides() {
     resolver: zodResolver(urineSlideSchema),
     defaultValues: {
       name: "",
+      species: "",
       description: "",
       findings: "",
       image_url: "",
@@ -118,6 +119,7 @@ export default function UrineSlides() {
     setEditingSlide(slide);
     form.reset({
       name: slide.name || "",
+      species: slide.species || "",
       description: slide.description || "",
       findings: slide.findings || "",
       image_url: slide.image_url || "",
@@ -188,6 +190,20 @@ export default function UrineSlides() {
                             <span className="text-sm font-bold italic">I</span>
                           </Button>
                         </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="species"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Species *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter affected species (e.g., Dog, Cat, etc.)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -300,6 +316,7 @@ export default function UrineSlides() {
                 <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Species</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Findings</TableHead>
                   <TableHead>Image</TableHead>
@@ -315,6 +332,9 @@ export default function UrineSlides() {
                           {slide.name}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {slide.species || '-'}
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {slide.description ? slide.description.substring(0, 60) + '...' : '-'}

@@ -35,6 +35,7 @@ export default function OtherSlides() {
     defaultValues: {
       slide_name: "",
       scientific_name: "",
+      species: "",
       description: "",
       image_url: "",
     },
@@ -190,6 +191,7 @@ export default function OtherSlides() {
     form.reset({
       slide_name: slide.name || slide.slide_name || "",
       scientific_name: slide.scientific_name || "",
+      species: slide.species || "",
       description: slide.description || "",
       image_url: slide.image_url || "",
     });
@@ -279,8 +281,20 @@ export default function OtherSlides() {
                   )}
                 />
                 
+                <FormField
+                  control={form.control}
+                  name="species"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Species *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter affected species (e.g., Dog, Cat, etc.)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                
                 <FormField
                   control={form.control}
                   name="description"
@@ -392,6 +406,7 @@ export default function OtherSlides() {
                 <TableHeader>
                 <TableRow>
                   <TableHead>Slide Name</TableHead>
+                  <TableHead>Species</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Image</TableHead>
                   <TableHead>Actions</TableHead>
@@ -406,6 +421,9 @@ export default function OtherSlides() {
                           {slide.name || slide.slide_name}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {slide.species || '-'}
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate text-sm">
