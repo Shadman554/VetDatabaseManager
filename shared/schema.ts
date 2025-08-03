@@ -90,12 +90,14 @@ export const noteSchema = z.object({
 
 export const otherSlideSchema = z.object({
   slide_name: z.string().min(1, "Slide name is required"),
+  scientific_name: z.string().optional(),
   description: z.string().optional(),
   image_url: z.string().url().optional().or(z.literal("")),
 });
 
 export const stoolSlideSchema = z.object({
   slide_name: z.string().min(1, "Slide name is required"),
+  scientific_name: z.string().optional(),
   description: z.string().optional(),
   image_url: z.string().url().optional().or(z.literal("")),
 });

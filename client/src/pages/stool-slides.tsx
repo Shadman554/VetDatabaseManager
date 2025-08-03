@@ -200,6 +200,7 @@ export default function StoolSlides() {
     setEditingSlide(slide);
     form.reset({
       slide_name: slide.name || slide.slide_name || "",
+      scientific_name: slide.scientific_name || "",
       description: slide.description || "",
       image_url: slide.image_url || "",
     });
