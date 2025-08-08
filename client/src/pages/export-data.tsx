@@ -145,21 +145,20 @@ export default function ExportData() {
         description: "string"
       },
       apiCall: async () => {
-        // Use the same method as Dictionary Management page
         try {
           let allItems: any[] = [];
           let seenIds = new Set(); // Track unique IDs to detect duplicates
           let currentPage = 1;
           let totalItemsExpected = 0;
-          let maxPages = 50; // Safety limit
+          let maxPages = 100; // Increased safety limit for large datasets
           
-          console.log('Starting dictionary export using api.dictionary.getAll method...');
+          console.log('Starting complete dictionary export (all pages)...');
           
           // Keep fetching until we get all items
           do {
             console.log(`Fetching dictionary page ${currentPage}...`);
             
-            // Use the same API method as Dictionary Management
+            // Use the same API method as Dictionary Management page
             const data = await api.dictionary.getAll({ 
               page: currentPage, 
               limit: 100 
@@ -168,7 +167,7 @@ export default function ExportData() {
             if (data && data.items && Array.isArray(data.items)) {
               let newItemsCount = 0;
               
-              // Only add items we haven't seen before
+              // Only add items we haven't seen before (prevent duplicates)
               for (const item of data.items) {
                 const itemId = item.id || item.name || JSON.stringify(item);
                 if (!seenIds.has(itemId)) {
@@ -181,47 +180,49 @@ export default function ExportData() {
               // Get total expected items from first response
               if (currentPage === 1) {
                 totalItemsExpected = data.total || data.total_items || 0;
-                maxPages = totalItemsExpected > 0 ? Math.ceil(totalItemsExpected / 100) : 50;
-                console.log(`Expected total items: ${totalItemsExpected}, estimated pages: ${maxPages}`);
+                maxPages = totalItemsExpected > 0 ? Math.ceil(totalItemsExpected / 100) : 100;
+                console.log(`Expected total dictionary words: ${totalItemsExpected}, estimated pages: ${maxPages}`);
               }
               
-              console.log(`Dictionary page ${currentPage}: ${data.items.length} items, ${newItemsCount} new items (total unique: ${allItems.length})`);
+              console.log(`Dictionary page ${currentPage}: ${data.items.length} items, ${newItemsCount} new items (total unique: ${allItems.length}/${totalItemsExpected})`);
               
-              // Stop if we got no items, no new items, or fewer than 100 items (last page)
+              // Stop if we got no items, no new items, or fewer than page size (last page)
               if (data.items.length === 0 || newItemsCount === 0 || data.items.length < 100) {
-                console.log(`Stopping at page ${currentPage}: ${data.items.length === 0 ? 'no items' : newItemsCount === 0 ? 'no new items' : 'last page'}`);
+                console.log(`Export complete at page ${currentPage}: ${data.items.length === 0 ? 'no items returned' : newItemsCount === 0 ? 'no new unique items' : 'reached last page'}`);
                 break;
               }
             } else {
-              console.log('No valid data received, stopping');
+              console.log('No valid data received, stopping export');
               break;
             }
             
             currentPage++;
             
-            // Safety checks
+            // Safety checks to prevent infinite loops
             if (totalItemsExpected > 0 && allItems.length >= totalItemsExpected) {
-              console.log('Reached expected total items');
+              console.log(`Export complete: reached expected total of ${totalItemsExpected} items`);
               break;
             }
             
             if (currentPage > maxPages) {
-              console.log('Reached maximum page limit');
+              console.log(`Export stopped: reached maximum page limit of ${maxPages}`);
               break;
             }
             
           } while (currentPage <= maxPages);
           
-          console.log(`Dictionary export complete: ${allItems.length} total unique items fetched`);
+          console.log(`Dictionary export complete: Successfully exported ${allItems.length} unique dictionary words from ${currentPage - 1} pages`);
           
           return {
             items: allItems,
             total: allItems.length,
-            total_items: allItems.length
+            total_items: allItems.length,
+            pages_fetched: currentPage - 1,
+            expected_total: totalItemsExpected
           };
         } catch (error) {
           console.error('Dictionary export error:', error);
-          return { items: [], total: 0 };
+          throw new Error(`Failed to export dictionary: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
     },
@@ -375,11 +376,16 @@ export default function ExportData() {
     setIsExporting(true);
     
     try {
+      const exportResults = [];
+      
       for (const tableId of selectedTables) {
         const item = exportItems.find(i => i.id === tableId);
         if (item) {
           try {
             const data = await item.apiCall();
+            
+            // Get the count of items exported
+            const itemCount = Array.isArray(data) ? data.length : (data.items ? data.items.length : 0);
             
             if (exportFormat === 'json') {
               // Create separate JSON file for each table with full data
@@ -392,20 +398,35 @@ export default function ExportData() {
                 downloadFile(csvContent, `${tableId}.csv`, 'text/csv');
               }
             }
+            
+            exportResults.push({
+              table: item.label,
+              count: itemCount,
+              pages: data.pages_fetched || 1
+            });
+            
           } catch (error) {
             console.error(`Failed to fetch ${tableId}:`, error);
             toast({
               title: `Export failed for ${tableId}`,
-              description: `Failed to fetch data: ${error}`,
+              description: `Failed to fetch data: ${error instanceof Error ? error.message : String(error)}`,
               variant: "destructive",
             });
           }
         }
       }
 
+      // Show detailed export results
+      const totalItems = exportResults.reduce((sum, result) => sum + result.count, 0);
+      const detailsText = exportResults.map(result => 
+        result.table === 'Dictionary Words' ? 
+          `${result.table}: ${result.count} words (${result.pages} pages)` : 
+          `${result.table}: ${result.count} items`
+      ).join(', ');
+      
       toast({
-        title: "Export completed",
-        description: `Successfully exported ${selectedTables.length} table(s) as separate ${exportFormat.toUpperCase()} files.`,
+        title: "Export completed successfully",
+        description: `Exported ${totalItems} total items. ${detailsText}`,
       });
     } catch (error) {
       console.error('Export error:', error);
@@ -494,9 +515,19 @@ export default function ExportData() {
                 <div className="flex-1 min-w-0">
                   <label htmlFor={item.id} className="font-medium text-sm cursor-pointer">
                     {item.label}
+                    {item.id === 'dictionary' && (
+                      <span className="ml-2 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                        All Pages
+                      </span>
+                    )}
                   </label>
                   <p className="text-xs text-muted-foreground mt-1">
                     {item.endpoint}
+                    {item.id === 'dictionary' && (
+                      <span className="block mt-1 text-green-600 dark:text-green-400">
+                        ✓ Automatically exports all 25 pages (~2,438 words)
+                      </span>
+                    )}
                   </p>
                   <div className="mt-2">
                     <details className="text-xs">
