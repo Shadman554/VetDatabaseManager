@@ -153,7 +153,8 @@ export default function ExportData() {
           let allItems: any[] = [];
           let currentPage = 1;
           let totalPages = 1;
-          const pageSize = 1000; // Use reasonable page size
+          const pageSize = 100; // API supports max 100 items per page
+          let totalItemsExpected = 0;
           
           // Keep fetching until we get all items
           do {
@@ -174,17 +175,18 @@ export default function ExportData() {
             if (data.items && Array.isArray(data.items)) {
               allItems = allItems.concat(data.items);
               
-              // Calculate total pages from the response
-              if (data.total && data.size) {
-                totalPages = Math.ceil(data.total / data.size);
-              } else if (data.total_pages) {
-                totalPages = data.total_pages;
+              // Get total expected items from first response
+              if (currentPage === 1) {
+                totalItemsExpected = data.total || data.total_items || 0;
+                if (totalItemsExpected > 0) {
+                  totalPages = Math.ceil(totalItemsExpected / pageSize);
+                }
               }
               
-              console.log(`Dictionary page ${currentPage} fetched: ${data.items.length} items`);
+              console.log(`Dictionary page ${currentPage} fetched: ${data.items.length} items (total so far: ${allItems.length})`);
               
-              // If we got fewer items than requested, we've reached the end
-              if (data.items.length < pageSize) {
+              // Stop if we got no items or fewer than the page size (indicating last page)
+              if (data.items.length === 0 || data.items.length < pageSize) {
                 break;
               }
             } else {
@@ -192,7 +194,13 @@ export default function ExportData() {
             }
             
             currentPage++;
-          } while (currentPage <= totalPages && currentPage <= 10); // Safety limit of 10 pages max
+            
+            // Safety check: stop if we've already got the expected total
+            if (totalItemsExpected > 0 && allItems.length >= totalItemsExpected) {
+              break;
+            }
+            
+          } while (currentPage <= Math.max(totalPages, 50)); // Allow up to 50 pages as safety limit
           
           console.log('Total dictionary items fetched:', allItems.length);
           
