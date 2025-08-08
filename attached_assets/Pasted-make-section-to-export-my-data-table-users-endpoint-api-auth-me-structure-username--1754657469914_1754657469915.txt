@@ -1,0 +1,131 @@
+make section to export my data:
+
+table: users
+endpoint: /api/auth/me
+
+structure:
+{
+"username": "string",
+"email": "user@example.com",
+"id": "string",
+"is_active": true,
+"is_admin": true,
+"total_points": 0,
+"today_points": 0,
+"photo_url": "string",
+"created_at": "2025-08-08T12:24:08.182Z",
+"last_updated": "2025-08-08T12:24:08.182Z",
+"google_id": "string"
+}
+
+Table: books
+endpoint: /api/books/by-title/{book_title}
+structue:
+{
+"title": "string",
+"description": "string",
+"category": "string",
+"cover_url": "string",
+"download_url": "string",
+"id": "string",
+"added_at": "2025-08-08T12:26:10.116Z"
+}
+
+table: diseases
+endpoint: /api/diseases/
+structure:
+{
+"name": "string",
+"kurdish": "string",
+"symptoms": "string",
+"cause": "string",
+"control": "string"
+}
+
+table: drugs
+endpoint: /api/drugs/
+structure:
+{
+"name": "string",
+"usage": "string",
+"side_effect": "string",
+"other_info": "string",
+"drug_class": "string"
+}
+
+table: dictionary_words
+endpoints: /api/dictionary/{word_name}
+structure:
+{
+"name": "string",
+"kurdish": "string",
+"arabic": "string",
+"description": "string",
+}
+
+table: notifications
+endpoint: /api/notifications/
+structure:
+{
+"title": "string",
+"body": "string",
+"image_url": "string",
+"type": "string"
+}
+
+table: normal_ranges
+endpoint: /api/normal-ranges/
+structure:
+{
+"name": "string",
+"species": "string",
+"category": "string",
+"unit": "string",
+"min_value": "string",
+"max_value": "string"
+}
+
+table: instruments
+endpoint: /api/instruments/
+structure:
+{
+"name": "string",
+"description": "string",
+"image_url": "string"
+}
+
+table: notes
+endpoint: /api/notes/
+sturcture:
+{
+"name": "string",
+"description": "string",
+"image_url": "string"
+}
+
+table: urine_slides
+endpoint: /api/urine-slides/
+structure:
+{
+"name": "string",
+"species": "string",
+"image_url": "string"
+}
+
+table: stool_slides
+endpoint: /api/stool-slides/
+structure:
+{
+"name": "string",
+"species": "string",
+"image_url": "string"
+}
+
+table: other_slides
+endpoint: /api/other-slides/
+structure:
+{
+"name": "string",
+"species": "string",
+"image_url": "string"
+}

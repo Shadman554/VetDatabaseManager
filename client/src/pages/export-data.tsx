@@ -194,52 +194,26 @@ export default function ExportData() {
     setSelectedTables([]);
   };
 
-  const extractNames = (data: any, tableName: string) => {
-    if (!data) return [];
+  const convertToCSV = (data: any) => {
+    if (!data) return '';
     
     // Handle both array and object with items property
     const items = Array.isArray(data) ? data : (data.items || []);
-    if (!Array.isArray(items) || items.length === 0) return [];
+    if (!Array.isArray(items) || items.length === 0) return '';
     
-    // Extract only the identifying field based on table type
-    const getIdentifier = (item: any, tableId: string) => {
-      switch (tableId) {
-        case 'users':
-          return item.username || item.id;
-        case 'books':
-          return item.title;
-        case 'diseases':
-        case 'drugs':
-        case 'dictionary':
-        case 'normal_ranges':
-        case 'instruments':
-        case 'notes':
-        case 'urine_slides':
-        case 'stool_slides':
-        case 'other_slides':
-          return item.name;
-        case 'notifications':
-          return item.title;
-        default:
-          return item.name || item.title || item.id;
-      }
-    };
-
-    return items.map(item => getIdentifier(item, tableName)).filter(name => name);
-  };
-
-  const convertToCSV = (names: string[]) => {
-    if (!names || names.length === 0) return '';
-    
+    const headers = Object.keys(items[0]);
     const csvContent = [
-      'name',
-      ...names.map(name => {
-        // Escape CSV values that contain commas or quotes
-        if (typeof name === 'string' && (name.includes(',') || name.includes('"'))) {
-          return `"${name.replace(/"/g, '""')}"`;
-        }
-        return name;
-      })
+      headers.join(','),
+      ...items.map(item => 
+        headers.map(header => {
+          const value = item[header];
+          // Escape CSV values that contain commas or quotes
+          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          return value;
+        }).join(',')
+      )
     ].join('\n');
     
     return csvContent;
@@ -276,15 +250,14 @@ export default function ExportData() {
         if (item) {
           try {
             const data = await item.apiCall();
-            const names = extractNames(data, tableId);
             
             if (exportFormat === 'json') {
-              // Create separate JSON file for each table with only names
-              const jsonContent = JSON.stringify(names, null, 2);
+              // Create separate JSON file for each table with full data
+              const jsonContent = JSON.stringify(data, null, 2);
               downloadFile(jsonContent, `${tableId}.json`, 'application/json');
             } else {
-              // Create separate CSV file for each table with only names
-              const csvContent = convertToCSV(names);
+              // Create separate CSV file for each table with full data
+              const csvContent = convertToCSV(data);
               if (csvContent) {
                 downloadFile(csvContent, `${tableId}.csv`, 'text/csv');
               }
