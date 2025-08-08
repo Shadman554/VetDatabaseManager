@@ -25,6 +25,7 @@ import AppLinks from "@/pages/app-links";
 import About from "@/pages/about";
 import BulkUpload from "@/pages/bulk-upload";
 import ExportData from "@/pages/export-data";
+import ImportData from "@/pages/import-data";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -87,6 +88,8 @@ function MainApp() {
         return <BulkUpload />;
       case "export-data":
         return <ExportData />;
+      case "import-data":
+        return <ImportData />;
       default:
         return <Dashboard />;
     }
