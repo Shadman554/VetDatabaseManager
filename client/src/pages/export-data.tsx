@@ -145,27 +145,62 @@ export default function ExportData() {
         description: "string"
       },
       apiCall: async () => {
-        // Fetch ALL dictionary data using a large size parameter
+        // Fetch ALL dictionary data by making multiple API calls if necessary
         try {
           const authResponse = await fetch('/api/vet-auth');
           const authData = await authResponse.json();
           
-          const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=1&size=10000`, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authData.token}`
+          let allItems: any[] = [];
+          let currentPage = 1;
+          let totalPages = 1;
+          const pageSize = 1000; // Use reasonable page size
+          
+          // Keep fetching until we get all items
+          do {
+            const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${currentPage}&size=${pageSize}`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authData.token}`
+              }
+            });
+            
+            if (!response.ok) {
+              console.error('Dictionary API error:', response.status);
+              break;
             }
-          });
+            
+            const data = await response.json();
+            
+            if (data.items && Array.isArray(data.items)) {
+              allItems = allItems.concat(data.items);
+              
+              // Calculate total pages from the response
+              if (data.total && data.size) {
+                totalPages = Math.ceil(data.total / data.size);
+              } else if (data.total_pages) {
+                totalPages = data.total_pages;
+              }
+              
+              console.log(`Dictionary page ${currentPage} fetched: ${data.items.length} items`);
+              
+              // If we got fewer items than requested, we've reached the end
+              if (data.items.length < pageSize) {
+                break;
+              }
+            } else {
+              break;
+            }
+            
+            currentPage++;
+          } while (currentPage <= totalPages && currentPage <= 10); // Safety limit of 10 pages max
           
-          if (!response.ok) {
-            console.error('Dictionary API error:', response.status);
-            return { items: [], total: 0 };
-          }
+          console.log('Total dictionary items fetched:', allItems.length);
           
-          const data = await response.json();
-          console.log('Dictionary items fetched:', data.items?.length || 0);
-          
-          return data;
+          return {
+            items: allItems,
+            total: allItems.length,
+            total_items: allItems.length
+          };
         } catch (error) {
           console.error('Dictionary fetch error:', error);
           return { items: [], total: 0 };
