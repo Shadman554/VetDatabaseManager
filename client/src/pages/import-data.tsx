@@ -81,7 +81,7 @@ export default function ImportData() {
     const baseName = filename.replace(/\.(json|csv)$/, '');
     
     const endpointMap: { [key: string]: { endpoint: string; readonly: boolean } } = {
-      'users': { endpoint: 'https://python-database-production.up.railway.app/api/users/', readonly: true },
+      'users': { endpoint: 'https://python-database-production.up.railway.app/api/users/', readonly: false },
       'books': { endpoint: 'https://python-database-production.up.railway.app/api/books/', readonly: false },
       'diseases': { endpoint: 'https://python-database-production.up.railway.app/api/diseases/', readonly: false },
       'drugs': { endpoint: 'https://python-database-production.up.railway.app/api/drugs/', readonly: false },
@@ -91,9 +91,9 @@ export default function ImportData() {
       'tutorial-videos': { endpoint: 'https://python-database-production.up.railway.app/api/tutorial-videos/', readonly: false },
       'instruments': { endpoint: 'https://python-database-production.up.railway.app/api/instruments/', readonly: false },
       'notes': { endpoint: 'https://python-database-production.up.railway.app/api/notes/', readonly: false },
-      'urine_slide': { endpoint: 'https://python-database-production.up.railway.app/api/urine-slides/', readonly: true },
-      'stool_slide': { endpoint: 'https://python-database-production.up.railway.app/api/stool-slides/', readonly: true },
-      'other_slide': { endpoint: 'https://python-database-production.up.railway.app/api/other-slides/', readonly: true },
+      'urine_slide': { endpoint: 'https://python-database-production.up.railway.app/api/urine-slides/', readonly: false },
+      'stool_slide': { endpoint: 'https://python-database-production.up.railway.app/api/stool-slides/', readonly: false },
+      'other_slide': { endpoint: 'https://python-database-production.up.railway.app/api/other-slides/', readonly: false },
       'notifications': { endpoint: 'https://python-database-production.up.railway.app/api/notifications/', readonly: false },
       'app-links': { endpoint: 'https://python-database-production.up.railway.app/api/app-links/', readonly: false },
       'about': { endpoint: 'https://python-database-production.up.railway.app/api/about/', readonly: false }
@@ -382,8 +382,8 @@ export default function ImportData() {
         <CardContent className="space-y-3">
           <div className="text-sm space-y-2">
             <p><strong>File Naming:</strong> Name files according to data type (dictionary.json, books.csv, etc.)</p>
-            <p><strong>Supported Types:</strong> books, diseases, drugs, dictionary, staff, normal-ranges, tutorial-videos, instruments, notes, notifications, app-links, about</p>
-            <p><strong>Read-Only Types:</strong> users, urine_slide, stool_slide, other_slide (can export but not import)</p>
+            <p><strong>Supported Types:</strong> users, books, diseases, drugs, dictionary, staff, normal-ranges, tutorial-videos, instruments, notes, urine_slide, stool_slide, other_slide, notifications, app-links, about</p>
+            <p><strong>Note:</strong> All data types support both import and export operations</p>
             <p><strong>JSON Format:</strong> Should contain an array of objects or an object with an "items" property</p>
             <p><strong>CSV Format:</strong> First row should contain column headers</p>
             <p><strong>Large Files:</strong> Import is processed item by item, so large files may take time</p>
