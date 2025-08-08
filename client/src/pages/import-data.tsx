@@ -77,26 +77,26 @@ export default function ImportData() {
     });
   };
 
-  const getEndpointFromFilename = (filename: string): string | null => {
+  const getEndpointFromFilename = (filename: string): { endpoint: string; readonly: boolean } | null => {
     const baseName = filename.replace(/\.(json|csv)$/, '');
     
-    const endpointMap: { [key: string]: string } = {
-      'users': 'https://python-database-production.up.railway.app/api/users/',
-      'books': 'https://python-database-production.up.railway.app/api/books/',
-      'diseases': 'https://python-database-production.up.railway.app/api/diseases/',
-      'drugs': 'https://python-database-production.up.railway.app/api/drugs/',
-      'dictionary': 'https://python-database-production.up.railway.app/api/dictionary/',
-      'staff': 'https://python-database-production.up.railway.app/api/staff/',
-      'normal-ranges': 'https://python-database-production.up.railway.app/api/normal-ranges/',
-      'tutorial-videos': 'https://python-database-production.up.railway.app/api/tutorial-videos/',
-      'instruments': 'https://python-database-production.up.railway.app/api/instruments/',
-      'notes': 'https://python-database-production.up.railway.app/api/notes/',
-      'urine-slides': 'https://python-database-production.up.railway.app/api/urine-slides/',
-      'stool-slides': 'https://python-database-production.up.railway.app/api/stool-slides/',
-      'other-slides': 'https://python-database-production.up.railway.app/api/other-slides/',
-      'notifications': 'https://python-database-production.up.railway.app/api/notifications/',
-      'app-links': 'https://python-database-production.up.railway.app/api/app-links/',
-      'about': 'https://python-database-production.up.railway.app/api/about/'
+    const endpointMap: { [key: string]: { endpoint: string; readonly: boolean } } = {
+      'users': { endpoint: 'https://python-database-production.up.railway.app/api/users/', readonly: true },
+      'books': { endpoint: 'https://python-database-production.up.railway.app/api/books/', readonly: false },
+      'diseases': { endpoint: 'https://python-database-production.up.railway.app/api/diseases/', readonly: false },
+      'drugs': { endpoint: 'https://python-database-production.up.railway.app/api/drugs/', readonly: false },
+      'dictionary': { endpoint: 'https://python-database-production.up.railway.app/api/dictionary/', readonly: false },
+      'staff': { endpoint: 'https://python-database-production.up.railway.app/api/staff/', readonly: false },
+      'normal-ranges': { endpoint: 'https://python-database-production.up.railway.app/api/normal-ranges/', readonly: false },
+      'tutorial-videos': { endpoint: 'https://python-database-production.up.railway.app/api/tutorial-videos/', readonly: false },
+      'instruments': { endpoint: 'https://python-database-production.up.railway.app/api/instruments/', readonly: false },
+      'notes': { endpoint: 'https://python-database-production.up.railway.app/api/notes/', readonly: false },
+      'urine-slides': { endpoint: 'https://python-database-production.up.railway.app/api/urine-slides/', readonly: false },
+      'stool-slides': { endpoint: 'https://python-database-production.up.railway.app/api/stool-slides/', readonly: false },
+      'other-slides': { endpoint: 'https://python-database-production.up.railway.app/api/other-slides/', readonly: false },
+      'notifications': { endpoint: 'https://python-database-production.up.railway.app/api/notifications/', readonly: false },
+      'app-links': { endpoint: 'https://python-database-production.up.railway.app/api/app-links/', readonly: false },
+      'about': { endpoint: 'https://python-database-production.up.railway.app/api/about/', readonly: false }
     };
 
     return endpointMap[baseName] || null;
@@ -105,13 +105,21 @@ export default function ImportData() {
   const importFile = async (file: File): Promise<ImportResult> => {
     try {
       const data = await parseFileContent(file);
-      const endpoint = getEndpointFromFilename(file.name);
+      const endpointInfo = getEndpointFromFilename(file.name);
       
-      if (!endpoint) {
+      if (!endpointInfo) {
         return {
           file: file.name,
           status: 'error',
           message: 'Unknown file type - cannot determine API endpoint'
+        };
+      }
+
+      if (endpointInfo.readonly) {
+        return {
+          file: file.name,
+          status: 'error',
+          message: 'This endpoint is read-only and does not support importing data'
         };
       }
 
@@ -126,7 +134,7 @@ export default function ImportData() {
 
       for (const item of items) {
         try {
-          const response = await fetch(endpoint, {
+          const response = await fetch(endpointInfo.endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -139,7 +147,8 @@ export default function ImportData() {
             successCount++;
           } else {
             errorCount++;
-            console.warn(`Failed to import item from ${file.name}:`, await response.text());
+            const errorText = await response.text();
+            console.warn(`Failed to import item from ${file.name}:`, errorText);
           }
         } catch (error) {
           errorCount++;
@@ -358,8 +367,9 @@ export default function ImportData() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="text-sm space-y-2">
-            <p><strong>File Naming:</strong> Name files according to data type (users.json, dictionary.csv, etc.)</p>
-            <p><strong>Supported Types:</strong> users, books, diseases, drugs, dictionary, staff, normal-ranges, tutorial-videos, instruments, notes, urine-slides, stool-slides, other-slides, notifications, app-links, about</p>
+            <p><strong>File Naming:</strong> Name files according to data type (dictionary.json, books.csv, etc.)</p>
+            <p><strong>Supported Types:</strong> books, diseases, drugs, dictionary, staff, normal-ranges, tutorial-videos, instruments, notes, urine-slides, stool-slides, other-slides, notifications, app-links, about</p>
+            <p><strong>Read-Only Types:</strong> users (can export but not import)</p>
             <p><strong>JSON Format:</strong> Should contain an array of objects or an object with an "items" property</p>
             <p><strong>CSV Format:</strong> First row should contain column headers</p>
             <p><strong>Large Files:</strong> Import is processed item by item, so large files may take time</p>
