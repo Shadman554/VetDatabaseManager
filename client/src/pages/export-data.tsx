@@ -157,11 +157,18 @@ export default function ExportData() {
           do {
             console.log(`Fetching dictionary page ${currentPage}...`);
             
-            // Use the same API method as Dictionary Management page
-            const data = await api.dictionary.getAll({ 
-              page: currentPage, 
-              limit: 100 
+            // Make direct API call to ensure proper pagination
+            const authResponse = await fetch('/api/vet-auth');
+            const authData = await authResponse.json();
+            
+            const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${currentPage}&limit=100`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authData.token}`
+              }
             });
+            
+            const data = await response.json();
             
             if (data && data.items && Array.isArray(data.items)) {
               // Add all items from this page (the API should handle uniqueness)
