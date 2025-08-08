@@ -151,14 +151,17 @@ export default function ExportData() {
           const authData = await authResponse.json();
           
           let allItems: any[] = [];
+          let seenIds = new Set(); // Track unique IDs to detect duplicates
           let currentPage = 1;
           let totalPages = 1;
           const pageSize = 100; // API supports max 100 items per page
           let totalItemsExpected = 0;
+          let consecutiveDuplicatePages = 0;
           
           // Keep fetching until we get all items
           do {
-            const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${currentPage}&size=${pageSize}`, {
+            // Try different page parameter formats
+            const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${currentPage}&limit=${pageSize}`, {
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authData.token}`
@@ -173,7 +176,17 @@ export default function ExportData() {
             const data = await response.json();
             
             if (data.items && Array.isArray(data.items)) {
-              allItems = allItems.concat(data.items);
+              let newItemsCount = 0;
+              
+              // Only add items we haven't seen before
+              for (const item of data.items) {
+                const itemId = item.id || item.name || JSON.stringify(item);
+                if (!seenIds.has(itemId)) {
+                  seenIds.add(itemId);
+                  allItems.push(item);
+                  newItemsCount++;
+                }
+              }
               
               // Get total expected items from first response
               if (currentPage === 1) {
@@ -183,7 +196,21 @@ export default function ExportData() {
                 }
               }
               
-              console.log(`Dictionary page ${currentPage} fetched: ${data.items.length} items (total so far: ${allItems.length})`);
+              console.log(`Dictionary page ${currentPage} fetched: ${data.items.length} items, ${newItemsCount} new items (total unique: ${allItems.length})`);
+              
+              // If we got no new items, it might be duplicate data
+              if (newItemsCount === 0) {
+                consecutiveDuplicatePages++;
+                console.log(`Warning: No new items on page ${currentPage}, might be duplicate data`);
+                
+                // If we get 3 consecutive pages with no new items, stop
+                if (consecutiveDuplicatePages >= 3) {
+                  console.log('Stopping due to consecutive duplicate pages');
+                  break;
+                }
+              } else {
+                consecutiveDuplicatePages = 0; // Reset counter
+              }
               
               // Stop if we got no items or fewer than the page size (indicating last page)
               if (data.items.length === 0 || data.items.length < pageSize) {
@@ -197,6 +224,7 @@ export default function ExportData() {
             
             // Safety check: stop if we've already got the expected total
             if (totalItemsExpected > 0 && allItems.length >= totalItemsExpected) {
+              console.log('Reached expected total items');
               break;
             }
             
