@@ -153,6 +153,7 @@ export default function ImportData() {
           }
           
           console.log('Importing item:', cleanItem);
+          console.log('Endpoint:', endpointInfo.endpoint);
           
           const response = await fetch(endpointInfo.endpoint, {
             method: 'POST',
