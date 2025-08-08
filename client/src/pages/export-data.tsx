@@ -270,8 +270,6 @@ export default function ExportData() {
     setIsExporting(true);
     
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      
       for (const tableId of selectedTables) {
         const item = exportItems.find(i => i.id === tableId);
         if (item) {
@@ -282,12 +280,12 @@ export default function ExportData() {
             if (exportFormat === 'json') {
               // Create separate JSON file for each table with only names
               const jsonContent = JSON.stringify(names, null, 2);
-              downloadFile(jsonContent, `${tableId}-names-${timestamp}.json`, 'application/json');
+              downloadFile(jsonContent, `${tableId}.json`, 'application/json');
             } else {
               // Create separate CSV file for each table with only names
               const csvContent = convertToCSV(names);
               if (csvContent) {
-                downloadFile(csvContent, `${tableId}-names-${timestamp}.csv`, 'text/csv');
+                downloadFile(csvContent, `${tableId}.csv`, 'text/csv');
               }
             }
           } catch (error) {
