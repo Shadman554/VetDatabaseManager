@@ -24,6 +24,7 @@ import Notifications from "@/pages/notifications";
 import AppLinks from "@/pages/app-links";
 import About from "@/pages/about";
 import BulkUpload from "@/pages/bulk-upload";
+import ExportData from "@/pages/export-data";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -84,6 +85,8 @@ function MainApp() {
         return <About />;
       case "bulk-upload":
         return <BulkUpload />;
+      case "export-data":
+        return <ExportData />;
       default:
         return <Dashboard />;
     }
