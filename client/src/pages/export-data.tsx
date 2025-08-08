@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Download, FileText, Database, Clock } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import JSZip from 'jszip';
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface ExportItem {
@@ -362,6 +363,18 @@ export default function ExportData() {
     URL.revokeObjectURL(url);
   };
 
+  const downloadZipFile = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleExport = async () => {
     if (selectedTables.length === 0) {
       toast({
@@ -376,6 +389,12 @@ export default function ExportData() {
     
     try {
       const exportResults = [];
+      const zip = new JSZip();
+      const vetFolder = zip.folder("VET DICT + database");
+      
+      if (!vetFolder) {
+        throw new Error("Failed to create folder structure");
+      }
       
       for (const tableId of selectedTables) {
         const item = exportItems.find(i => i.id === tableId);
@@ -387,14 +406,14 @@ export default function ExportData() {
             const itemCount = Array.isArray(data) ? data.length : (data.items ? data.items.length : 0);
             
             if (exportFormat === 'json') {
-              // Create separate JSON file for each table with full data
+              // Add JSON file to the VET DICT + database folder
               const jsonContent = JSON.stringify(data, null, 2);
-              downloadFile(jsonContent, `${tableId}.json`, 'application/json');
+              vetFolder.file(`${tableId}.json`, jsonContent);
             } else {
-              // Create separate CSV file for each table with full data
+              // Add CSV file to the VET DICT + database folder
               const csvContent = convertToCSV(data);
               if (csvContent) {
-                downloadFile(csvContent, `${tableId}.csv`, 'text/csv');
+                vetFolder.file(`${tableId}.csv`, csvContent);
               }
             }
             
@@ -415,8 +434,34 @@ export default function ExportData() {
         }
       }
 
-      // Show detailed export results
+      // Create README file with export details
       const totalItems = exportResults.reduce((sum, result) => sum + result.count, 0);
+      const readmeContent = `# VET DICT + Database Export
+
+Export Date: ${new Date().toLocaleString()}
+Export Format: ${exportFormat.toUpperCase()}
+Total Items: ${totalItems}
+
+## Exported Tables:
+${exportResults.map(result => 
+  result.table === 'Dictionary Words' ? 
+    `- ${result.table}: ${result.count} words (${result.pages} pages)` : 
+    `- ${result.table}: ${result.count} items`
+).join('\n')}
+
+## File Descriptions:
+${exportResults.map(result => {
+  const tableId = exportItems.find(item => item.label === result.table)?.id || '';
+  return `- ${tableId}.${exportFormat}: Contains ${result.count} ${result.table.toLowerCase()}`;
+}).join('\n')}
+`;
+
+      vetFolder.file("README.md", readmeContent);
+
+      // Generate and download the ZIP file
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      downloadZipFile(zipBlob, "VET DICT + database.zip");
+      
       const detailsText = exportResults.map(result => 
         result.table === 'Dictionary Words' ? 
           `${result.table}: ${result.count} words (${result.pages} pages)` : 
@@ -425,7 +470,7 @@ export default function ExportData() {
       
       toast({
         title: "Export completed successfully",
-        description: `Exported ${totalItems} total items. ${detailsText}`,
+        description: `Downloaded "VET DICT + database.zip" with ${totalItems} total items. ${detailsText}`,
       });
     } catch (error) {
       console.error('Export error:', error);
@@ -467,7 +512,7 @@ export default function ExportData() {
                   onChange={(e) => setExportFormat(e.target.value as 'json' | 'csv')}
                   className="text-primary"
                 />
-                <span>JSON (Separate files)</span>
+                <span>JSON (Folder structure)</span>
               </label>
               <label className="flex items-center space-x-2">
                 <input
@@ -478,7 +523,7 @@ export default function ExportData() {
                   onChange={(e) => setExportFormat(e.target.value as 'json' | 'csv')}
                   className="text-primary"
                 />
-                <span>CSV (Separate files)</span>
+                <span>CSV (Folder structure)</span>
               </label>
             </div>
           </div>
