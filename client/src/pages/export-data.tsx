@@ -56,39 +56,22 @@ export default function ExportData() {
         added_at: "2025-08-08T12:26:10.116Z"
       },
       apiCall: async () => {
-        // Fetch ALL books data
-        let allData: any[] = [];
-        let page = 1;
-        let hasMore = true;
-        
-        while (hasMore) {
-          try {
-            const authResponse = await fetch('/api/vet-auth');
-            const authData = await authResponse.json();
-            
-            const response = await fetch(`https://python-database-production.up.railway.app/api/books/?page=${page}&size=1000`, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authData.token}`
-              }
-            });
-            
-            const data = await response.json();
-            
-            if (data.items && data.items.length > 0) {
-              allData = allData.concat(data.items);
-              page++;
-              hasMore = data.items.length === 100;
-            } else {
-              hasMore = false;
+        try {
+          const authResponse = await fetch('/api/vet-auth');
+          const authData = await authResponse.json();
+          
+          const response = await fetch(`https://python-database-production.up.railway.app/api/books/?page=1&size=10000`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authData.token}`
             }
-          } catch (error) {
-            console.error('Books pagination error:', error);
-            hasMore = false;
-          }
+          });
+          
+          return await response.json();
+        } catch (error) {
+          console.error('Books fetch error:', error);
+          return { items: [], total: 0 };
         }
-        
-        return { items: allData, total: allData.length };
       }
     },
     {
@@ -103,39 +86,22 @@ export default function ExportData() {
         control: "string"
       },
       apiCall: async () => {
-        // Fetch ALL diseases data
-        let allData: any[] = [];
-        let page = 1;
-        let hasMore = true;
-        
-        while (hasMore) {
-          try {
-            const authResponse = await fetch('/api/vet-auth');
-            const authData = await authResponse.json();
-            
-            const response = await fetch(`https://python-database-production.up.railway.app/api/diseases/?page=${page}&size=1000`, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authData.token}`
-              }
-            });
-            
-            const data = await response.json();
-            
-            if (data.items && data.items.length > 0) {
-              allData = allData.concat(data.items);
-              page++;
-              hasMore = data.items.length === 100;
-            } else {
-              hasMore = false;
+        try {
+          const authResponse = await fetch('/api/vet-auth');
+          const authData = await authResponse.json();
+          
+          const response = await fetch(`https://python-database-production.up.railway.app/api/diseases/?page=1&size=10000`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authData.token}`
             }
-          } catch (error) {
-            console.error('Diseases pagination error:', error);
-            hasMore = false;
-          }
+          });
+          
+          return await response.json();
+        } catch (error) {
+          console.error('Diseases fetch error:', error);
+          return { items: [], total: 0 };
         }
-        
-        return { items: allData, total: allData.length };
       }
     },
     {
@@ -150,39 +116,22 @@ export default function ExportData() {
         drug_class: "string"
       },
       apiCall: async () => {
-        // Fetch ALL drugs data
-        let allData: any[] = [];
-        let page = 1;
-        let hasMore = true;
-        
-        while (hasMore) {
-          try {
-            const authResponse = await fetch('/api/vet-auth');
-            const authData = await authResponse.json();
-            
-            const response = await fetch(`https://python-database-production.up.railway.app/api/drugs/?page=${page}&size=1000`, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authData.token}`
-              }
-            });
-            
-            const data = await response.json();
-            
-            if (data.items && data.items.length > 0) {
-              allData = allData.concat(data.items);
-              page++;
-              hasMore = data.items.length === 100;
-            } else {
-              hasMore = false;
+        try {
+          const authResponse = await fetch('/api/vet-auth');
+          const authData = await authResponse.json();
+          
+          const response = await fetch(`https://python-database-production.up.railway.app/api/drugs/?page=1&size=10000`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authData.token}`
             }
-          } catch (error) {
-            console.error('Drugs pagination error:', error);
-            hasMore = false;
-          }
+          });
+          
+          return await response.json();
+        } catch (error) {
+          console.error('Drugs fetch error:', error);
+          return { items: [], total: 0 };
         }
-        
-        return { items: allData, total: allData.length };
       }
     },
     {
@@ -196,48 +145,31 @@ export default function ExportData() {
         description: "string"
       },
       apiCall: async () => {
-        // Fetch ALL dictionary data by pagination
-        let allData: any[] = [];
-        let page = 1;
-        let hasMore = true;
-        
-        while (hasMore) {
-          try {
-            const authResponse = await fetch('/api/vet-auth');
-            const authData = await authResponse.json();
-            
-            const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${page}&size=1000`, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authData.token}`
-              }
-            });
-            
-            if (!response.ok) {
-              console.error('Dictionary API error:', response.status);
-              break;
+        // Fetch ALL dictionary data using a large size parameter
+        try {
+          const authResponse = await fetch('/api/vet-auth');
+          const authData = await authResponse.json();
+          
+          const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=1&size=10000`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authData.token}`
             }
-            
-            const data = await response.json();
-            console.log(`Dictionary page ${page}:`, data.items?.length || 0, 'items');
-            
-            if (data.items && data.items.length > 0) {
-              allData = allData.concat(data.items);
-              page++;
-              // Continue only if we got exactly 100 items (full page)
-              // Stop if we got less than 100 (last page)
-              hasMore = data.items.length === 100;
-            } else {
-              hasMore = false;
-            }
-          } catch (error) {
-            console.error('Dictionary pagination error:', error);
-            hasMore = false;
+          });
+          
+          if (!response.ok) {
+            console.error('Dictionary API error:', response.status);
+            return { items: [], total: 0 };
           }
+          
+          const data = await response.json();
+          console.log('Dictionary items fetched:', data.items?.length || 0);
+          
+          return data;
+        } catch (error) {
+          console.error('Dictionary fetch error:', error);
+          return { items: [], total: 0 };
         }
-        
-        console.log('Total dictionary items fetched:', allData.length);
-        return { items: allData, total: allData.length };
       }
     },
     {
