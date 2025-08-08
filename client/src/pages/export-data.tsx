@@ -78,7 +78,7 @@ export default function ExportData() {
             if (data.items && data.items.length > 0) {
               allData = allData.concat(data.items);
               page++;
-              hasMore = data.items.length >= 100;
+              hasMore = data.items.length === 100;
             } else {
               hasMore = false;
             }
@@ -125,7 +125,7 @@ export default function ExportData() {
             if (data.items && data.items.length > 0) {
               allData = allData.concat(data.items);
               page++;
-              hasMore = data.items.length >= 100;
+              hasMore = data.items.length === 100;
             } else {
               hasMore = false;
             }
@@ -172,7 +172,7 @@ export default function ExportData() {
             if (data.items && data.items.length > 0) {
               allData = allData.concat(data.items);
               page++;
-              hasMore = data.items.length >= 100;
+              hasMore = data.items.length === 100;
             } else {
               hasMore = false;
             }
@@ -224,8 +224,9 @@ export default function ExportData() {
             if (data.items && data.items.length > 0) {
               allData = allData.concat(data.items);
               page++;
-              // Continue if we got a full page
-              hasMore = data.items.length >= 100;
+              // Continue only if we got exactly 100 items (full page)
+              // Stop if we got less than 100 (last page)
+              hasMore = data.items.length === 100;
             } else {
               hasMore = false;
             }
