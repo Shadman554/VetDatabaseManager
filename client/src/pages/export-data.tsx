@@ -244,41 +244,39 @@ export default function ExportData() {
     setIsExporting(true);
     
     try {
-      const exportData: Record<string, any> = {};
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       
       for (const tableId of selectedTables) {
         const item = exportItems.find(i => i.id === tableId);
         if (item) {
           try {
             const data = await item.apiCall();
-            exportData[tableId] = data;
+            
+            if (exportFormat === 'json') {
+              // Create separate JSON file for each table
+              const jsonContent = JSON.stringify(data, null, 2);
+              downloadFile(jsonContent, `${tableId}-${timestamp}.json`, 'application/json');
+            } else {
+              // Create separate CSV file for each table
+              const csvContent = convertToCSV(data, tableId);
+              if (csvContent) {
+                downloadFile(csvContent, `${tableId}-${timestamp}.csv`, 'text/csv');
+              }
+            }
           } catch (error) {
             console.error(`Failed to fetch ${tableId}:`, error);
-            exportData[tableId] = { error: `Failed to fetch data: ${error}` };
-          }
-        }
-      }
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      
-      if (exportFormat === 'json') {
-        const jsonContent = JSON.stringify(exportData, null, 2);
-        downloadFile(jsonContent, `vet-data-export-${timestamp}.json`, 'application/json');
-      } else {
-        // For CSV, create separate files for each table
-        for (const [tableName, data] of Object.entries(exportData)) {
-          if (data && !data.error) {
-            const csvContent = convertToCSV(data, tableName);
-            if (csvContent) {
-              downloadFile(csvContent, `${tableName}-export-${timestamp}.csv`, 'text/csv');
-            }
+            toast({
+              title: `Export failed for ${tableId}`,
+              description: `Failed to fetch data: ${error}`,
+              variant: "destructive",
+            });
           }
         }
       }
 
       toast({
         title: "Export completed",
-        description: `Successfully exported ${selectedTables.length} table(s) as ${exportFormat.toUpperCase()}.`,
+        description: `Successfully exported ${selectedTables.length} table(s) as separate ${exportFormat.toUpperCase()} files.`,
       });
     } catch (error) {
       console.error('Export error:', error);
@@ -320,7 +318,7 @@ export default function ExportData() {
                   onChange={(e) => setExportFormat(e.target.value as 'json' | 'csv')}
                   className="text-primary"
                 />
-                <span>JSON (Single file)</span>
+                <span>JSON (Separate files)</span>
               </label>
               <label className="flex items-center space-x-2">
                 <input
@@ -331,7 +329,7 @@ export default function ExportData() {
                   onChange={(e) => setExportFormat(e.target.value as 'json' | 'csv')}
                   className="text-primary"
                 />
-                <span>CSV (Multiple files)</span>
+                <span>CSV (Separate files)</span>
               </label>
             </div>
           </div>
