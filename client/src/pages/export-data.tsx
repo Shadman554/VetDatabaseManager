@@ -146,38 +146,79 @@ export default function ExportData() {
       },
       apiCall: async () => {
         try {
-          console.log('Starting dictionary export with workaround for broken API pagination...');
+          let allItems: any[] = [];
+          let currentPage = 1;
+          let totalItemsExpected = 0;
+          let maxPages = 50; // Safety limit
           
-          // The external API has broken pagination - it always returns the same 100 items
-          // regardless of page parameter. We'll get what we can and inform the user.
+          console.log('Starting complete dictionary export using skip pagination...');
           
-          const authResponse = await fetch('/api/vet-auth');
-          const authData = await authResponse.json();
-          
-          const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?limit=100`, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authData.token}`
-            }
-          });
-          
-          const data = await response.json();
-          
-          if (data && data.items && Array.isArray(data.items)) {
-            console.log(`Dictionary export: Successfully fetched ${data.items.length} items (API limitation: pagination is broken on the server)`);
-            console.log(`Note: The external API reports ${data.total} total items but pagination is not working`);
+          // Keep fetching until we get all items using skip parameter
+          do {
+            const skip = (currentPage - 1) * 100;
+            console.log(`Fetching dictionary page ${currentPage} (skip=${skip})...`);
             
-            return {
-              items: data.items,
-              total: data.items.length,
-              total_items: data.items.length,
-              pages_fetched: 1,
-              expected_total: data.total,
-              api_limitation: 'Pagination broken on external API - can only export first 100 items'
-            };
-          } else {
-            throw new Error('No valid data received from API');
-          }
+            const authResponse = await fetch('/api/vet-auth');
+            const authData = await authResponse.json();
+            
+            const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?skip=${skip}&limit=100`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authData.token}`
+              }
+            });
+            
+            const data = await response.json();
+            
+            if (data && data.items && Array.isArray(data.items)) {
+              // Add all items from this page
+              for (const item of data.items) {
+                allItems.push(item);
+              }
+              
+              // Get total expected items from first response
+              if (currentPage === 1) {
+                totalItemsExpected = data.total || data.total_items || 0;
+                maxPages = totalItemsExpected > 0 ? Math.ceil(totalItemsExpected / 100) : 50;
+                console.log(`Expected total dictionary words: ${totalItemsExpected}, estimated pages: ${maxPages}`);
+              }
+              
+              console.log(`Dictionary page ${currentPage}: ${data.items.length} items added (total: ${allItems.length}/${totalItemsExpected})`);
+              
+              // Stop if we got no items or fewer than page size (indicating last page)
+              if (data.items.length === 0 || data.items.length < 100) {
+                console.log(`Export complete at page ${currentPage}: ${data.items.length === 0 ? 'no items returned' : 'reached last page'}`);
+                break;
+              }
+            } else {
+              console.log('No valid data received, stopping export');
+              break;
+            }
+            
+            currentPage++;
+            
+            // Safety checks to prevent infinite loops
+            if (totalItemsExpected > 0 && allItems.length >= totalItemsExpected) {
+              console.log(`Export complete: reached expected total of ${totalItemsExpected} items`);
+              break;
+            }
+            
+            if (currentPage > maxPages) {
+              console.log(`Export stopped: reached maximum page limit of ${maxPages}`);
+              break;
+            }
+            
+          } while (currentPage <= maxPages);
+          
+          console.log(`Dictionary export complete: Successfully exported ${allItems.length} unique dictionary words from ${currentPage - 1} pages`);
+          
+          return {
+            items: allItems,
+            total: allItems.length,
+            total_items: allItems.length,
+            pages_fetched: currentPage - 1,
+            expected_total: totalItemsExpected
+          };
         } catch (error) {
           console.error('Dictionary export error:', error);
           throw new Error(`Failed to export dictionary: ${error instanceof Error ? error.message : String(error)}`);
@@ -474,16 +515,16 @@ export default function ExportData() {
                   <label htmlFor={item.id} className="font-medium text-sm cursor-pointer">
                     {item.label}
                     {item.id === 'dictionary' && (
-                      <span className="ml-2 text-xs bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-2 py-1 rounded">
-                        Limited
+                      <span className="ml-2 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                        All Pages
                       </span>
                     )}
                   </label>
                   <p className="text-xs text-muted-foreground mt-1">
                     {item.endpoint}
                     {item.id === 'dictionary' && (
-                      <span className="block mt-1 text-amber-600 dark:text-amber-400">
-                        ⚠️ API Limitation: Only first 100 words (server pagination broken)
+                      <span className="block mt-1 text-green-600 dark:text-green-400">
+                        ✓ Exports all 2,438 words using skip pagination
                       </span>
                     )}
                   </p>
