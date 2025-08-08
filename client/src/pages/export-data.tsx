@@ -147,7 +147,6 @@ export default function ExportData() {
       apiCall: async () => {
         try {
           let allItems: any[] = [];
-          let seenIds = new Set(); // Track unique IDs to detect duplicates
           let currentPage = 1;
           let totalItemsExpected = 0;
           let maxPages = 100; // Increased safety limit for large datasets
@@ -165,16 +164,9 @@ export default function ExportData() {
             });
             
             if (data && data.items && Array.isArray(data.items)) {
-              let newItemsCount = 0;
-              
-              // Only add items we haven't seen before (prevent duplicates)
+              // Add all items from this page (the API should handle uniqueness)
               for (const item of data.items) {
-                const itemId = item.id || item.name || JSON.stringify(item);
-                if (!seenIds.has(itemId)) {
-                  seenIds.add(itemId);
-                  allItems.push(item);
-                  newItemsCount++;
-                }
+                allItems.push(item);
               }
               
               // Get total expected items from first response
@@ -184,11 +176,11 @@ export default function ExportData() {
                 console.log(`Expected total dictionary words: ${totalItemsExpected}, estimated pages: ${maxPages}`);
               }
               
-              console.log(`Dictionary page ${currentPage}: ${data.items.length} items, ${newItemsCount} new items (total unique: ${allItems.length}/${totalItemsExpected})`);
+              console.log(`Dictionary page ${currentPage}: ${data.items.length} items added (total: ${allItems.length}/${totalItemsExpected})`);
               
-              // Stop if we got no items, no new items, or fewer than page size (last page)
-              if (data.items.length === 0 || newItemsCount === 0 || data.items.length < 100) {
-                console.log(`Export complete at page ${currentPage}: ${data.items.length === 0 ? 'no items returned' : newItemsCount === 0 ? 'no new unique items' : 'reached last page'}`);
+              // Stop if we got no items or fewer than page size (indicating last page)
+              if (data.items.length === 0 || data.items.length < 100) {
+                console.log(`Export complete at page ${currentPage}: ${data.items.length === 0 ? 'no items returned' : 'reached last page'}`);
                 break;
               }
             } else {
