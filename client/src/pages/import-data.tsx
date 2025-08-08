@@ -132,23 +132,37 @@ export default function ImportData() {
       let successCount = 0;
       let errorCount = 0;
 
+      console.log(`Starting import of ${file.name} with ${items.length} items`);
+      console.log('Sample item structure:', items[0]);
+
       for (const item of items) {
         try {
+          // Remove any fields that might cause conflicts (like id, created_at, etc.)
+          const cleanItem = { ...item };
+          delete cleanItem.id;
+          delete cleanItem.created_at;
+          delete cleanItem.updated_at;
+          delete cleanItem.last_updated;
+          
+          console.log('Importing item:', cleanItem);
+          
           const response = await fetch(endpointInfo.endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${authData.token}`
             },
-            body: JSON.stringify(item)
+            body: JSON.stringify(cleanItem)
           });
 
           if (response.ok) {
             successCount++;
+            console.log(`Successfully imported item ${successCount}`);
           } else {
             errorCount++;
             const errorText = await response.text();
             console.warn(`Failed to import item from ${file.name}:`, errorText);
+            console.warn('Failed item data:', cleanItem);
           }
         } catch (error) {
           errorCount++;
