@@ -27,7 +27,7 @@ export default function ExportData() {
     {
       id: "users",
       label: "Users",
-      endpoint: "/api/auth/me",
+      endpoint: "https://python-database-production.up.railway.app/api/users/",
       structure: {
         username: "string",
         email: "user@example.com",
@@ -41,7 +41,27 @@ export default function ExportData() {
         last_updated: "2025-08-08T12:24:08.182Z",
         google_id: "string"
       },
-      apiCall: () => api.getCurrentUser()
+      apiCall: async () => {
+        try {
+          const authResponse = await fetch('/api/vet-auth');
+          const authData = await authResponse.json();
+          
+          const response = await fetch(`https://python-database-production.up.railway.app/api/users/?size=10000`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authData.token}`
+            }
+          });
+          
+          const data = await response.json();
+          console.log(`Users export: Successfully fetched ${data.items ? data.items.length : 'unknown'} users`);
+          
+          return data;
+        } catch (error) {
+          console.error('Users export error:', error);
+          throw new Error(`Failed to export users: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
     },
     {
       id: "books",
