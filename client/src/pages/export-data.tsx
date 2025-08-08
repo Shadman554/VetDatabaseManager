@@ -55,7 +55,7 @@ export default function ExportData() {
         id: "string",
         added_at: "2025-08-08T12:26:10.116Z"
       },
-      apiCall: () => api.books.getAll()
+      apiCall: () => api.books.getAll({ size: 10000 })
     },
     {
       id: "diseases",
@@ -68,7 +68,7 @@ export default function ExportData() {
         cause: "string",
         control: "string"
       },
-      apiCall: () => api.diseases.getAll()
+      apiCall: () => api.diseases.getAll({ size: 10000 })
     },
     {
       id: "drugs",
@@ -81,7 +81,7 @@ export default function ExportData() {
         other_info: "string",
         drug_class: "string"
       },
-      apiCall: () => api.drugs.getAll()
+      apiCall: () => api.drugs.getAll({ size: 10000 })
     },
     {
       id: "dictionary",
@@ -93,7 +93,7 @@ export default function ExportData() {
         arabic: "string",
         description: "string"
       },
-      apiCall: () => api.dictionary.getAll()
+      apiCall: () => api.dictionary.getAll({ size: 10000 })
     },
     {
       id: "notifications",
@@ -105,7 +105,7 @@ export default function ExportData() {
         image_url: "string",
         type: "string"
       },
-      apiCall: () => fetch('/api/notifications/').then(res => res.json())
+      apiCall: () => fetch('/api/notifications/?size=10000').then(res => res.json())
     },
     {
       id: "normal_ranges",
@@ -119,7 +119,7 @@ export default function ExportData() {
         min_value: "string",
         max_value: "string"
       },
-      apiCall: () => api.normalRanges.getAll()
+      apiCall: () => api.normalRanges.getAll({ size: 10000 })
     },
     {
       id: "instruments",
@@ -130,7 +130,7 @@ export default function ExportData() {
         description: "string",
         image_url: "string"
       },
-      apiCall: () => api.instruments.getAll()
+      apiCall: () => api.instruments.getAll({ size: 10000 })
     },
     {
       id: "notes",
@@ -141,7 +141,7 @@ export default function ExportData() {
         description: "string",
         image_url: "string"
       },
-      apiCall: () => api.notes.getAll()
+      apiCall: () => api.notes.getAll({ size: 10000 })
     },
     {
       id: "urine_slides",
@@ -152,7 +152,7 @@ export default function ExportData() {
         species: "string",
         image_url: "string"
       },
-      apiCall: () => api.urineSlides.getAll()
+      apiCall: () => api.urineSlides.getAll({ size: 10000 })
     },
     {
       id: "stool_slides",
@@ -163,7 +163,7 @@ export default function ExportData() {
         species: "string",
         image_url: "string"
       },
-      apiCall: () => api.stoolSlides.getAll()
+      apiCall: () => api.stoolSlides.getAll({ size: 10000 })
     },
     {
       id: "other_slides",
@@ -174,7 +174,7 @@ export default function ExportData() {
         species: "string",
         image_url: "string"
       },
-      apiCall: () => api.otherSlides.getAll()
+      apiCall: () => api.otherSlides.getAll({ size: 10000 })
     }
   ];
 
