@@ -93,7 +93,32 @@ export default function ExportData() {
         arabic: "string",
         description: "string"
       },
-      apiCall: () => api.dictionary.getAll({ size: 10000 })
+      apiCall: async () => {
+        // Fetch all dictionary data by pagination
+        let allData: any[] = [];
+        let page = 1;
+        let hasMore = true;
+        
+        while (hasMore) {
+          const response = await fetch(`https://python-database-production.up.railway.app/api/dictionary/?page=${page}&size=1000`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + (await fetch('/api/vet-auth').then(r => r.json()).then(d => d.token))
+            }
+          });
+          const data = await response.json();
+          
+          if (data.items && data.items.length > 0) {
+            allData = allData.concat(data.items);
+            page++;
+            hasMore = data.items.length === 1000; // Continue if we got full page
+          } else {
+            hasMore = false;
+          }
+        }
+        
+        return { items: allData, total: allData.length };
+      }
     },
     {
       id: "notifications",
