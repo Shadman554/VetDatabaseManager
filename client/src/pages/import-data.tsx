@@ -144,6 +144,14 @@ export default function ImportData() {
           delete cleanItem.updated_at;
           delete cleanItem.last_updated;
           
+          // Handle slide endpoints - ensure required fields are present
+          if (endpointInfo.endpoint.includes('slides')) {
+            // Add default species if missing (slides require this field)
+            if (!cleanItem.species) {
+              cleanItem.species = 'all';
+            }
+          }
+          
           console.log('Importing item:', cleanItem);
           
           const response = await fetch(endpointInfo.endpoint, {
