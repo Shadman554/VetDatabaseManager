@@ -81,7 +81,7 @@ export default function ImportData() {
     const baseName = filename.replace(/\.(json|csv)$/, '');
     
     const endpointMap: { [key: string]: { endpoint: string; readonly: boolean } } = {
-      'users': { endpoint: 'https://python-database-production.up.railway.app/api/users/', readonly: false },
+      'users': { endpoint: 'https://python-database-production.up.railway.app/api/users/', readonly: true },
       'books': { endpoint: 'https://python-database-production.up.railway.app/api/books/', readonly: false },
       'diseases': { endpoint: 'https://python-database-production.up.railway.app/api/diseases/', readonly: false },
       'drugs': { endpoint: 'https://python-database-production.up.railway.app/api/drugs/', readonly: false },
@@ -382,8 +382,8 @@ export default function ImportData() {
         <CardContent className="space-y-3">
           <div className="text-sm space-y-2">
             <p><strong>File Naming:</strong> Name files according to data type (dictionary.json, books.csv, etc.)</p>
-            <p><strong>Supported Types:</strong> users, books, diseases, drugs, dictionary, staff, normal-ranges, tutorial-videos, instruments, notes, urine_slide, stool_slide, other_slide, notifications, app-links, about</p>
-            <p><strong>Note:</strong> All data types support both import and export operations</p>
+            <p><strong>Supported Types:</strong> books, diseases, drugs, dictionary, staff, normal-ranges, tutorial-videos, instruments, notes, urine_slide, stool_slide, other_slide, notifications, app-links, about</p>
+            <p><strong>Read-Only Types:</strong> users (export only - user management requires different API patterns)</p>
             <p><strong>JSON Format:</strong> Should contain an array of objects or an object with an "items" property</p>
             <p><strong>CSV Format:</strong> First row should contain column headers</p>
             <p><strong>Large Files:</strong> Import is processed item by item, so large files may take time</p>
