@@ -26,6 +26,11 @@ import About from "@/pages/about";
 import BulkUpload from "@/pages/bulk-upload";
 import ExportData from "@/pages/export-data";
 import ImportData from "@/pages/import-data";
+import HaematologyTests from "@/pages/haematology-tests";
+import SerologyTests from "@/pages/serology-tests";
+import BiochemistryTests from "@/pages/biochemistry-tests";
+import BacteriologyTests from "@/pages/bacteriology-tests";
+import OtherTests from "@/pages/other-tests";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -90,6 +95,16 @@ function MainApp() {
         return <ExportData />;
       case "import-data":
         return <ImportData />;
+      case "haematology-tests":
+        return <HaematologyTests />;
+      case "serology-tests":
+        return <SerologyTests />;
+      case "biochemistry-tests":
+        return <BiochemistryTests />;
+      case "bacteriology-tests":
+        return <BacteriologyTests />;
+      case "other-tests":
+        return <OtherTests />;
       default:
         return <Dashboard />;
     }

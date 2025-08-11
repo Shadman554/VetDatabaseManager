@@ -29,10 +29,11 @@ Preferred communication style: Simple, everyday language.
 - **Authentication System**: Simple username/password authentication with session-based tokens, client-side token storage in localStorage, and role-based access for admin privileges.
 
 ### Key Features
-- **Content Management Modules**: Comprehensive CRUD operations for 15 distinct content types including Books, Diseases, Drugs, Dictionary, Staff, Normal Ranges, Tutorial Videos, Instruments, Notes, Urine Slides, Other Slides, Stool Slides, Notifications, App Links, and About.
+- **Content Management Modules**: Comprehensive CRUD operations for 20+ distinct content types including Books, Diseases, Drugs, Dictionary, Staff, Normal Ranges, Tutorial Videos, Instruments, Notes, Urine Slides, Other Slides, Stool Slides, Notifications, App Links, and About.
+- **Laboratory Test Management System**: Full CRUD operations for 5 laboratory test categories (Haematology, Serology, Biochemistry, Bacteriology, Other Tests) with section-based content structure and individual section-level image URLs.
 - **Enhanced CRUD Interface**: Features data tables, real-time updates, in-line editing, delete confirmation, client-side form validation, and loading states.
 - **SearchFilterSort Component**: Reusable component providing comprehensive search, filter, and sort functionality across all content management pages.
-- **Notes System**: Redesigned with a user-friendly, section-based structure supporting multiple titled sections with content and rich text formatting.
+- **Section-Based Content Architecture**: Both Notes and Laboratory Tests use structured JSON format with sections containing title, content, and individual image URLs for enhanced educational content delivery.
 - **Notification System**: Comprehensive management with categorization, bilingual labels, and real-time handling.
 - **Error Handling & Resilience**: Implemented retry logic with progressive backoff and comprehensive error handling for network failures, ensuring robust API communication.
 - **Data Flow**: Client-server communication handles authentication, content operations, data fetching via TanStack Query, and error handling with toast notifications. State management uses TanStack Query for server state, React Hook Form for form state, and custom hooks for authentication.
@@ -55,3 +56,9 @@ Preferred communication style: Simple, everyday language.
 ### External API Integration
 - **Primary API Endpoint**: `https://python-database-production.up.railway.app`
 - **Authentication**: Uses `VET_API_USERNAME` and `VET_API_PASSWORD` environment variables for secure credential management.
+- **Laboratory Test Endpoints**: Integrated with 5 laboratory test management APIs:
+  - `/api/haematology-tests/` - Haematology laboratory tests management
+  - `/api/serology-tests/` - Serology laboratory tests management  
+  - `/api/biochemistry-tests/` - Biochemistry laboratory tests management
+  - `/api/bacteriology-tests/` - Bacteriology laboratory tests management
+  - `/api/other-tests/` - Other laboratory tests management
