@@ -431,8 +431,8 @@ export default function HaematologyTests() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAndSortedTests.map((test: any) => (
-                    <TableRow key={test.name}>
+                  {filteredAndSortedTests.map((test: any, index: number) => (
+                    <TableRow key={`${test.name}-${test.id || index}`}>
                       <TableCell className="font-medium">{test.name}</TableCell>
                       <TableCell>
                         <div className="max-w-md">
