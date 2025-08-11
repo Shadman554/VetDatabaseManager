@@ -207,9 +207,13 @@ export default function NotesSimple() {
   };
 
   const onSubmit = (data: any) => {
-    // Convert sections to JSON format for the API
+    // Convert sections to JSON format for the API - include image_url for each section
     const structuredDescription = {
-      sections: sections.filter(section => section.title.trim() || section.content.trim())
+      sections: sections.filter(section => section.title.trim() || section.content.trim() || section.image_url?.trim()).map(section => ({
+        title: section.title,
+        content: section.content,
+        image_url: section.image_url || ""
+      }))
     };
 
     const noteData = {
@@ -233,7 +237,13 @@ export default function NotesSimple() {
     try {
       const parsed = JSON.parse(note.description || '{}');
       if (parsed.sections && Array.isArray(parsed.sections)) {
-        setSections(parsed.sections.length > 0 ? parsed.sections : [{ title: "", content: "", image_url: "" }]);
+        // Ensure all sections have image_url field for backward compatibility
+        const sectionsWithImageUrl = parsed.sections.map((section: any) => ({
+          title: section.title || "",
+          content: section.content || "",
+          image_url: section.image_url || ""
+        }));
+        setSections(sectionsWithImageUrl.length > 0 ? sectionsWithImageUrl : [{ title: "", content: "", image_url: "" }]);
       } else {
         setSections([{ title: "", content: note.description || "", image_url: "" }]);
       }
@@ -464,7 +474,10 @@ export default function NotesSimple() {
         }}
         sortDirection={sortDirection}
         activeFilters={activeFilters}
-        onFiltersChange={setActiveFilters}
+        onFilterChange={(key, value) => {
+          setActiveFilters(prev => ({ ...prev, [key]: value }));
+        }}
+        onClearFilters={() => setActiveFilters({})}
         sortOptions={[
           { key: "name", value: "name", label: "Name" },
         ]}
