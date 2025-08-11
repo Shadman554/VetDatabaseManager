@@ -20,6 +20,7 @@ import SearchFilterSort from "@/components/ui/search-filter-sort";
 interface Section {
   title: string;
   content: string;
+  image_url?: string;
 }
 
 interface NoteFormData {
@@ -43,7 +44,7 @@ export default function NotesSimple() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   const [sections, setSections] = useState<Section[]>([
-    { title: "", content: "" }
+    { title: "", content: "", image_url: "" }
   ]);
 
   const form = useForm({
@@ -185,12 +186,12 @@ export default function NotesSimple() {
 
   const resetForm = () => {
     form.reset();
-    setSections([{ title: "", content: "" }]);
+    setSections([{ title: "", content: "", image_url: "" }]);
     setEditingNote(null);
   };
 
   const addSection = () => {
-    setSections([...sections, { title: "", content: "" }]);
+    setSections([...sections, { title: "", content: "", image_url: "" }]);
   };
 
   const removeSection = (index: number) => {
@@ -199,7 +200,7 @@ export default function NotesSimple() {
     }
   };
 
-  const updateSection = (index: number, field: 'title' | 'content', value: string) => {
+  const updateSection = (index: number, field: 'title' | 'content' | 'image_url', value: string) => {
     const newSections = [...sections];
     newSections[index][field] = value;
     setSections(newSections);
@@ -232,12 +233,12 @@ export default function NotesSimple() {
     try {
       const parsed = JSON.parse(note.description || '{}');
       if (parsed.sections && Array.isArray(parsed.sections)) {
-        setSections(parsed.sections.length > 0 ? parsed.sections : [{ title: "", content: "" }]);
+        setSections(parsed.sections.length > 0 ? parsed.sections : [{ title: "", content: "", image_url: "" }]);
       } else {
-        setSections([{ title: "", content: note.description || "" }]);
+        setSections([{ title: "", content: note.description || "", image_url: "" }]);
       }
     } catch {
-      setSections([{ title: "", content: note.description || "" }]);
+      setSections([{ title: "", content: note.description || "", image_url: "" }]);
     }
     
     setShowForm(true);
@@ -265,6 +266,18 @@ export default function NotesSimple() {
                   <h3 className="text-lg font-semibold text-blue-700 dark:text-blue-300 mb-2" dir="auto">
                     {section.title}
                   </h3>
+                )}
+                {section.image_url && (
+                  <div className="mb-3">
+                    <img
+                      src={section.image_url}
+                      alt={section.title || "Section image"}
+                      className="max-w-full h-auto rounded-lg shadow-sm"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
                 )}
                 {section.content && (
                   <div className="text-gray-700 dark:text-gray-300" dir="auto">
@@ -408,6 +421,13 @@ export default function NotesSimple() {
                           rows={4}
                           dir="auto"
                         />
+                        
+                        <Input
+                          placeholder="Section image URL (optional)"
+                          value={section.image_url || ""}
+                          onChange={(e) => updateSection(index, 'image_url', e.target.value)}
+                          type="url"
+                        />
                       </div>
                     </Card>
                   ))}
@@ -438,9 +458,11 @@ export default function NotesSimple() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         sortBy={sortBy}
-        onSortChange={setSortBy}
+        onSortChange={(field, direction) => {
+          setSortBy(field);
+          setSortDirection(direction);
+        }}
         sortDirection={sortDirection}
-        onSortDirectionChange={setSortDirection}
         activeFilters={activeFilters}
         onFiltersChange={setActiveFilters}
         sortOptions={[
