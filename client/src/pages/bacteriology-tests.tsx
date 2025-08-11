@@ -64,7 +64,7 @@ export default function BacteriologyTests() {
         const response = await fetch('https://python-database-production.up.railway.app/api/bacteriology-tests/', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('vet_token')}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
         if (!response.ok) throw new Error('Failed to fetch');
@@ -136,7 +136,7 @@ export default function BacteriologyTests() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('vet_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(data),
       });
@@ -161,7 +161,7 @@ export default function BacteriologyTests() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('vet_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(data),
       });
@@ -184,13 +184,13 @@ export default function BacteriologyTests() {
     mutationFn: async (name: string) => {
       console.log('Making request to:', `https://python-database-production.up.railway.app/api/bacteriology-tests/${encodeURIComponent(name)}`, 'with method:', 'DELETE');
       console.log('Request headers:', {
-        'Authorization': `Bearer ${localStorage.getItem('vet_token')}`
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       });
       
       const response = await fetch(`https://python-database-production.up.railway.app/api/bacteriology-tests/${encodeURIComponent(name)}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('vet_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
