@@ -182,21 +182,41 @@ export default function HaematologyTests() {
   // Delete test mutation
   const deleteTestMutation = useMutation({
     mutationFn: async (name: string) => {
+      console.log('Making request to:', `https://python-database-production.up.railway.app/api/haematology-tests/${encodeURIComponent(name)}`, 'with method:', 'DELETE');
+      console.log('Request headers:', {
+        'Authorization': `Bearer ${localStorage.getItem('vet_token')}`
+      });
+      
       const response = await fetch(`https://python-database-production.up.railway.app/api/haematology-tests/${encodeURIComponent(name)}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('vet_token')}`
         }
       });
-      if (!response.ok) throw new Error('Failed to delete test');
-      return response.json();
+      
+      console.log('Response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Delete error response:', errorText);
+        throw new Error(`Failed to delete test: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+      
+      // Some DELETE endpoints might return empty response
+      const responseText = await response.text();
+      return responseText ? JSON.parse(responseText) : null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['haematology-tests'] });
       toast({ title: "Success", description: "Test deleted successfully" });
     },
-    onError: (error) => {
-      toast({ title: "Error", description: "Failed to delete test", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Delete mutation error:', error);
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to delete test", 
+        variant: "destructive" 
+      });
     },
   });
 
